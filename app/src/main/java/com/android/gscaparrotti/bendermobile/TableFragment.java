@@ -1,11 +1,10 @@
 package com.android.gscaparrotti.bendermobile;
 
-import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,15 +15,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -80,6 +75,7 @@ public class TableFragment extends Fragment {
                 new DownloadDataTask().execute();
             }
         });
+        new DownloadDataTask().execute();
         return view;
     }
 
@@ -135,17 +131,27 @@ public class TableFragment extends Fragment {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null)
+            if (convertView == null) {
                 convertView = inflater.inflate(R.layout.item_dish, parent, false);
-
-            Order order = getItem(position);
+            }
+            final Order order = getItem(position);
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final DishDetailFragment detail = DishDetailFragment.newInstance(order);
+                    detail.show(getFragmentManager(), "Dialog");
+                }
+            });
             ((TextView) convertView.findViewById(R.id.dish)).setText(order.getDish().getName());
-            ((TextView) convertView.findViewById(R.id.dishPrice))
-                    .setText("Prezzo Unitario: " + Double.toString(order.getDish().getPrice()));
             ((TextView) convertView.findViewById(R.id.dishToServe))
-                    .setText("Piatti da servire: " + Integer.toString(order.getAmounts().getX()));
+                    .setText(getResources().getString(R.string.StringOrdinati) + Integer.toString(order.getAmounts().getX()));
             ((TextView) convertView.findViewById(R.id.dishServed))
-                    .setText("Piatti serviti: " + Integer.toString(order.getAmounts().getY()));
+                    .setText(getResources().getString(R.string.StringDaServire) + Integer.toString(order.getAmounts().getX() - order.getAmounts().getY()));
+            if (order.getAmounts().getX() != order.getAmounts().getY()) {
+                convertView.findViewById(R.id.itemTableLayout).setBackgroundColor(Color.parseColor("#80FF5050"));
+            } else {
+                convertView.findViewById(R.id.itemTableLayout).setBackgroundColor(Color.parseColor("#8099FF66"));
+            }
             return convertView;
         }
     }
@@ -167,20 +173,19 @@ public class TableFragment extends Fragment {
             List<Order> temp = new LinkedList<>();
             try {
                 final Socket socket = new Socket("10.0.2.2", 6789);
+                socket.setSoTimeout(1000);
                 InputStream is = socket.getInputStream();
                 OutputStream os = socket.getOutputStream();
                 final DataOutputStream output = new DataOutputStream(os);
                 output.writeBytes("GET TABLE " + TableFragment.this.tableNumber + "\n");
                 final ObjectInputStream input = new ObjectInputStream(is);
                 Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input.readObject();
-                temp = new LinkedList<>();
                 for(Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(entry.getKey(), entry.getValue()));
                 }
                 socket.close();
             } catch (IOException  | ClassNotFoundException | ClassCastException e) {
                 Log.d("exception", e.getMessage());
-                temp = new LinkedList<>();
                 temp.add(new Order(new Dish(e.getMessage(), 0), new Pair<>(0, 0)));
             }
             return temp;

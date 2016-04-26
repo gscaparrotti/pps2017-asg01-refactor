@@ -1,9 +1,11 @@
 package model;
 
+import java.io.Serializable;
+
 /**
  * Created by gscap_000 on 25/04/2016.
  */
-public class Order {
+public class Order implements Serializable {
 
     private final IDish dish;
     private final Pair<Integer, Integer> amounts;
