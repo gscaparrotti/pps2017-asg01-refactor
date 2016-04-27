@@ -18,7 +18,7 @@ public class TableModel {
         if (ta == null) {
             this.ta = ta;
         }
-        for (int i = 0; i<50; i++) {
+        for (int i = 0; i<5; i++) {
             list.add(i);
             ta.tableAdded(list.get(i));
         }

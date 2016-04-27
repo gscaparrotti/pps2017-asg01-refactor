@@ -57,7 +57,7 @@ public class MainFragment extends Fragment {
     }
 
     public void tableAdded(final int tableNumber) {
-        ta.addElement(tableNumber);
+        ta.addElement(tableNumber + 1);
         gv.setAdapter(ta);
     }
 

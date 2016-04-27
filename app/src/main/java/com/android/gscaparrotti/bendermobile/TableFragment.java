@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
@@ -170,23 +171,24 @@ public class TableFragment extends Fragment {
         @Override
         protected List<Order> doInBackground(Void... params) {
             //qui effettuerò la chiamata al server
-            List<Order> temp = new LinkedList<>();
+            final List<Order> temp = new LinkedList<>();
             try {
-                final Socket socket = new Socket("10.0.2.2", 6789);
+                final Socket socket = new Socket();
+                socket.connect(new InetSocketAddress("10.0.2.2", 6789), 1000);
                 socket.setSoTimeout(1000);
-                InputStream is = socket.getInputStream();
-                OutputStream os = socket.getOutputStream();
+                final OutputStream os = socket.getOutputStream();
+                final InputStream is = socket.getInputStream();
                 final DataOutputStream output = new DataOutputStream(os);
                 output.writeBytes("GET TABLE " + TableFragment.this.tableNumber + "\n");
                 final ObjectInputStream input = new ObjectInputStream(is);
-                Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input.readObject();
-                for(Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
+                final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input.readObject();
+                for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(entry.getKey(), entry.getValue()));
                 }
                 socket.close();
             } catch (IOException  | ClassNotFoundException | ClassCastException e) {
                 Log.d("exception", e.getMessage());
-                temp.add(new Order(new Dish(e.getMessage(), 0), new Pair<>(0, 0)));
+                temp.add(new Order(new Dish(e.getMessage(), 0), new Pair<>(0, 1)));
             }
             return temp;
         }
