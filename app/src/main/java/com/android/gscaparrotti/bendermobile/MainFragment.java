@@ -1,20 +1,22 @@
 package com.android.gscaparrotti.bendermobile;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import model.TableModel;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -29,6 +31,7 @@ public class MainFragment extends Fragment {
     private GridView gv;
     private TableAdapter ta;
     private Context context;
+    private int tableNumber;
 
     private OnMainFragmentInteractionListener mListener;
 
@@ -52,17 +55,20 @@ public class MainFragment extends Fragment {
         gv = (GridView) view.findViewById(R.id.tablesContainer);
         ta = new TableAdapter(context);
         gv.setAdapter(ta);
-        new TableModel().addAll(this);
+        new TableNumberGetter().execute();
         return view;
     }
 
     public void tableAdded(final int tableNumber) {
-        ta.addElement(tableNumber + 1);
+        int current = ta.getCount();
+        for (int i = 0; i < tableNumber - current; i++) {
+            ta.addElement(i + 1);
+        }
         gv.setAdapter(ta);
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(Activity context) {
         super.onAttach(context);
         this.context = context;
         if (context instanceof OnMainFragmentInteractionListener) {
@@ -126,6 +132,34 @@ public class MainFragment extends Fragment {
                 }
             });
             return convertView;
+        }
+    }
+
+    private class TableNumberGetter extends AsyncTask<Void, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(final Void... params) {
+            final ServerInteractor serverInteractor = new ServerInteractor();
+            final String command = "GET AMOUNT";
+            Integer amount = 0;
+            try {
+                amount = (Integer) serverInteractor.sendCommandAndGetResult("10.0.2.2", 6789, command);
+                serverInteractor.interactionEnded();
+            } catch (Exception e) {
+                Log.e("exception", e.getMessage());
+                amount = -1;
+            }
+            return amount;
+        }
+
+        @Override
+        protected void onPostExecute(final Integer integer) {
+            super.onPostExecute(integer);
+            if (integer < 0) {
+                Toast.makeText(MainFragment.this.context, "Impossibile comunicare col server", Toast.LENGTH_LONG).show();
+            } else {
+                MainFragment.this.tableAdded(integer);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.android.gscaparrotti.bendermobile;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
@@ -14,15 +15,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -73,15 +65,15 @@ public class TableFragment extends Fragment {
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new DownloadDataTask().execute();
+                new SmalltalkWithServer().execute(new String("GET TABLE " + TableFragment.this.tableNumber));
             }
         });
-        new DownloadDataTask().execute();
+        new SmalltalkWithServer().execute(new String("GET TABLE " + TableFragment.this.tableNumber));
         return view;
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(Activity context) {
         super.onAttach(context);
         if (context instanceof OnTableFragmentInteractionListener) {
             mListener = (OnTableFragmentInteractionListener) context;
@@ -157,10 +149,7 @@ public class TableFragment extends Fragment {
         }
     }
 
-    private class DownloadDataTask extends AsyncTask<Void, Void, List<Order>> {
-
-        private HttpURLConnection conn;
-        private BufferedReader reader;
+    private class SmalltalkWithServer extends AsyncTask<String, Void, List<Order>> {
 
         @Override
         protected void onPreExecute() {
@@ -169,25 +158,19 @@ public class TableFragment extends Fragment {
         }
 
         @Override
-        protected List<Order> doInBackground(Void... params) {
+        protected List<Order> doInBackground(String... params) {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
+            final ServerInteractor dataDownloader = new ServerInteractor();
             try {
-                final Socket socket = new Socket();
-                socket.connect(new InetSocketAddress("10.0.2.2", 6789), 1000);
-                socket.setSoTimeout(1000);
-                final OutputStream os = socket.getOutputStream();
-                final InputStream is = socket.getInputStream();
-                final DataOutputStream output = new DataOutputStream(os);
-                output.writeBytes("GET TABLE " + TableFragment.this.tableNumber + "\n");
-                final ObjectInputStream input = new ObjectInputStream(is);
-                final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input.readObject();
+                final Object input = dataDownloader.sendCommandAndGetResult("10.0.2.2", 6789, params[0]);
+                final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(entry.getKey(), entry.getValue()));
                 }
-                socket.close();
-            } catch (IOException  | ClassNotFoundException | ClassCastException e) {
-                Log.d("exception", e.getMessage());
+                dataDownloader.interactionEnded();
+            } catch (Exception e) {
+                Log.e("exception", e.getMessage());
                 temp.add(new Order(new Dish(e.getMessage(), 0), new Pair<>(0, 1)));
             }
             return temp;
