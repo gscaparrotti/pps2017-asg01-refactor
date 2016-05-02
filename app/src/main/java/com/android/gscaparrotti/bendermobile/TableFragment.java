@@ -65,10 +65,10 @@ public class TableFragment extends Fragment {
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new SmalltalkWithServer().execute(new String("GET TABLE " + TableFragment.this.tableNumber));
+                new SmalltalkWithServer().execute("GET TABLE " + tableNumber);
             }
         });
-        new SmalltalkWithServer().execute(new String("GET TABLE " + TableFragment.this.tableNumber));
+        new SmalltalkWithServer().execute("GET TABLE " + tableNumber);
         return view;
     }
 
@@ -166,12 +166,12 @@ public class TableFragment extends Fragment {
                 final Object input = dataDownloader.sendCommandAndGetResult("10.0.2.2", 6789, params[0]);
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
-                    temp.add(new Order(entry.getKey(), entry.getValue()));
+                    temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
                 }
                 dataDownloader.interactionEnded();
             } catch (Exception e) {
                 Log.e("exception", e.getMessage());
-                temp.add(new Order(new Dish(e.getMessage(), 0), new Pair<>(0, 1)));
+                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.getMessage(), 0), new Pair<>(0, 1)));
             }
             return temp;
         }
