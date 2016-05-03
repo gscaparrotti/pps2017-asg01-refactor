@@ -15,17 +15,17 @@ public class ServerInteractor {
 
     private Socket socket;
 
-    public Object sendCommandAndGetResult(final String address, final int port, final String command) throws Exception {
+    public Object sendCommandAndGetResult(final String address, final int port, final Object input) throws Exception {
         socket = new Socket();
         Object datas = new Object();
         socket.connect(new InetSocketAddress(address, port), 1000);
         socket.setSoTimeout(1000);
         final OutputStream os = socket.getOutputStream();
         final InputStream is = socket.getInputStream();
-        final ObjectOutputStream output = new ObjectOutputStream(os);
-        output.writeObject(command);
-        final ObjectInputStream input = new ObjectInputStream(is);
-        datas = input.readObject();
+        final ObjectOutputStream outputStream = new ObjectOutputStream(os);
+        outputStream.writeObject(input);
+        final ObjectInputStream inputStream = new ObjectInputStream(is);
+        datas = inputStream.readObject();
         return datas;
     }
 

@@ -7,13 +7,16 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -65,10 +68,10 @@ public class TableFragment extends Fragment {
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new SmalltalkWithServer().execute("GET TABLE " + tableNumber);
+                new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
             }
         });
-        new SmalltalkWithServer().execute("GET TABLE " + tableNumber);
+        new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
         return view;
     }
 
@@ -135,12 +138,21 @@ public class TableFragment extends Fragment {
                     detail.show(getFragmentManager(), "Dialog");
                 }
             });
+            convertView.setLongClickable(true);
+            convertView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    order.getAmounts().setY(order.getAmounts().getX());
+                    new ServerUpdater().execute(order);
+                    return true;
+                }
+            });
             ((TextView) convertView.findViewById(R.id.dish)).setText(order.getDish().getName());
             ((TextView) convertView.findViewById(R.id.dishToServe))
                     .setText(getResources().getString(R.string.StringOrdinati) + Integer.toString(order.getAmounts().getX()));
             ((TextView) convertView.findViewById(R.id.dishServed))
                     .setText(getResources().getString(R.string.StringDaServire) + Integer.toString(order.getAmounts().getX() - order.getAmounts().getY()));
-            if (order.getAmounts().getX() != order.getAmounts().getY()) {
+            if (!order.getAmounts().getX().equals(order.getAmounts().getY())) {
                 convertView.findViewById(R.id.itemTableLayout).setBackgroundColor(Color.parseColor("#80FF5050"));
             } else {
                 convertView.findViewById(R.id.itemTableLayout).setBackgroundColor(Color.parseColor("#8099FF66"));
@@ -149,7 +161,31 @@ public class TableFragment extends Fragment {
         }
     }
 
-    private class SmalltalkWithServer extends AsyncTask<String, Void, List<Order>> {
+    private class ServerUpdater extends AsyncTask<Order, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Order... params) {
+            final ServerInteractor uploader = new ServerInteractor();
+            boolean result = false;
+            try {
+                final Object resultFromServer = uploader.sendCommandAndGetResult("10.0.2.2", 6789, params[0]);
+                final String stringResult = (String) resultFromServer;
+                if (stringResult.equals("ORDER UPDATED CORRECTLY")) {
+                    result = true;
+                }
+            } catch (final Exception e) {
+
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+        }
+    }
+
+    private class ServerOrdersDownloader extends AsyncTask<String, Void, List<Order>> {
 
         @Override
         protected void onPreExecute() {
@@ -180,6 +216,7 @@ public class TableFragment extends Fragment {
         protected void onPostExecute(List<Order> orders) {
             super.onPostExecute(orders);
             TableFragment.this.aggiorna(orders);
+            Toast.makeText(getActivity(), "Dati Scaricati", Toast.LENGTH_SHORT).show();
         }
     }
 
