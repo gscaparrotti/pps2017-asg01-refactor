@@ -14,6 +14,16 @@ import java.net.Socket;
 public class ServerInteractor {
 
     private Socket socket;
+    private static ServerInteractor instance;
+
+    public static ServerInteractor getInstance() {
+        if (instance == null) {
+            instance = new ServerInteractor();
+        }
+        return instance;
+    }
+
+    private ServerInteractor() { }
 
     public Object sendCommandAndGetResult(final String address, final int port, final Object input) throws Exception {
         socket = new Socket();

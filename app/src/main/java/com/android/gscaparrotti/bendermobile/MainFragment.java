@@ -139,7 +139,7 @@ public class MainFragment extends Fragment {
 
         @Override
         protected Integer doInBackground(final Void... params) {
-            final ServerInteractor serverInteractor = new ServerInteractor();
+            final ServerInteractor serverInteractor = ServerInteractor.getInstance();
             final String command = "GET AMOUNT";
             Integer amount = 0;
             try {

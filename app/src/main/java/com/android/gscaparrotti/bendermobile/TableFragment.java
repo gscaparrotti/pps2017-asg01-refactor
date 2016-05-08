@@ -21,6 +21,8 @@ import android.widget.Toast;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import model.Dish;
 import model.IDish;
@@ -33,6 +35,7 @@ public class TableFragment extends Fragment {
     private int tableNumber;
     private List<Order> list = new LinkedList<>();
     private DishAdapter adapter;
+    private Timer timer;
 
     private OnTableFragmentInteractionListener mListener;
 
@@ -72,6 +75,13 @@ public class TableFragment extends Fragment {
             }
         });
         new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+            }
+        }, 0, 1000);
         return view;
     }
 
@@ -100,6 +110,13 @@ public class TableFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        timer.cancel();
+        timer.purge();
     }
 
     /**
@@ -165,7 +182,7 @@ public class TableFragment extends Fragment {
 
         @Override
         protected Boolean doInBackground(Order... params) {
-            final ServerInteractor uploader = new ServerInteractor();
+            final ServerInteractor uploader = ServerInteractor.getInstance();
             boolean result = false;
             try {
                 final Object resultFromServer = uploader.sendCommandAndGetResult("10.0.2.2", 6789, params[0]);
@@ -197,7 +214,7 @@ public class TableFragment extends Fragment {
         protected List<Order> doInBackground(String... params) {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
-            final ServerInteractor dataDownloader = new ServerInteractor();
+            final ServerInteractor dataDownloader = ServerInteractor.getInstance();
             try {
                 final Object input = dataDownloader.sendCommandAndGetResult("10.0.2.2", 6789, params[0]);
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
@@ -216,7 +233,6 @@ public class TableFragment extends Fragment {
         protected void onPostExecute(List<Order> orders) {
             super.onPostExecute(orders);
             TableFragment.this.aggiorna(orders);
-            Toast.makeText(getActivity(), "Dati Scaricati", Toast.LENGTH_SHORT).show();
         }
     }
 
