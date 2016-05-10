@@ -23,13 +23,16 @@ public class ServerInteractor {
         return instance;
     }
 
-    private ServerInteractor() { }
+    private ServerInteractor() {
+        socket = new Socket();
+    }
 
     public Object sendCommandAndGetResult(final String address, final int port, final Object input) throws Exception {
-        socket = new Socket();
-        Object datas = new Object();
-        socket.connect(new InetSocketAddress(address, port), 1000);
-        socket.setSoTimeout(1000);
+        Object datas;
+        if (!socket.isConnected()) {
+            socket.connect(new InetSocketAddress(address, port), 1000);
+            socket.setSoTimeout(1000);
+        }
         final OutputStream os = socket.getOutputStream();
         final InputStream is = socket.getInputStream();
         final ObjectOutputStream outputStream = new ObjectOutputStream(os);
@@ -41,5 +44,6 @@ public class ServerInteractor {
 
     public void interactionEnded() throws IOException {
         socket.close();
+        instance = null;
     }
 }

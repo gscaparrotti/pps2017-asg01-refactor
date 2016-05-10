@@ -1,11 +1,10 @@
 package com.android.gscaparrotti.bendermobile;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -144,7 +143,6 @@ public class MainFragment extends Fragment {
             Integer amount = 0;
             try {
                 amount = (Integer) serverInteractor.sendCommandAndGetResult("10.0.2.2", 6789, command);
-                serverInteractor.interactionEnded();
             } catch (Exception e) {
                 Log.e("exception", e.getMessage());
                 amount = -1;

@@ -5,6 +5,10 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.Log;
+
+import java.io.IOException;
 
 public class MainActivity extends Activity implements TableFragment.OnTableFragmentInteractionListener, MainFragment.OnMainFragmentInteractionListener {
 
@@ -13,6 +17,24 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         replaceFragment(MainFragment.newInstance(), false);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("STOP", "STOP");
+        final ServerInteractor interactor = ServerInteractor.getInstance();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        interactor.sendCommandAndGetResult("10.0.2.2", 6789, "CLOSE CONNECTION");
+                        interactor.interactionEnded();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
     }
 
     @Override

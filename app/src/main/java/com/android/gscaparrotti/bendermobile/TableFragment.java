@@ -74,15 +74,14 @@ public class TableFragment extends Fragment {
                 new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
             }
         });
-        new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
-            }
-        }, 0, 1000);
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("FRAGMENT ON RESUME", "FRAGMENT ON RESUME");
+        startTasks();
     }
 
     @Override
@@ -113,10 +112,22 @@ public class TableFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
+    public void onStop() {
         super.onDestroyView();
+        Log.d("FRAGMENT STOP", "FRAGMENT STOP");
         timer.cancel();
         timer.purge();
+    }
+
+    private void startTasks() {
+        new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+            }
+        }, 0, 1000);
     }
 
     /**
@@ -221,8 +232,8 @@ public class TableFragment extends Fragment {
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
                 }
-                dataDownloader.interactionEnded();
             } catch (Exception e) {
+                e.printStackTrace();
                 Log.e("exception", e.getMessage());
                 temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.getMessage(), 0), new Pair<>(0, 1)));
             }
