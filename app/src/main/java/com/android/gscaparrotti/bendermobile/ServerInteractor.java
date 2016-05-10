@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Created by gscap_000 on 01/05/2016.
@@ -27,7 +28,7 @@ public class ServerInteractor {
         socket = new Socket();
     }
 
-    public Object sendCommandAndGetResult(final String address, final int port, final Object input) throws Exception {
+    public Object sendCommandAndGetResult(final String address, final int port, final Object input) throws IOException, ClassNotFoundException {
         Object datas;
         if (!socket.isConnected()) {
             socket.connect(new InetSocketAddress(address, port), 1000);

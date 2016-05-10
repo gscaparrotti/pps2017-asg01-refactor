@@ -18,6 +18,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -232,10 +235,10 @@ public class TableFragment extends Fragment {
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
                 }
-            } catch (Exception e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
-                Log.e("exception", e.getMessage());
-                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.getMessage(), 0), new Pair<>(0, 1)));
+                Log.e("exception", e.toString());
+                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0), new Pair<>(0, 1)));
             }
             return temp;
         }
