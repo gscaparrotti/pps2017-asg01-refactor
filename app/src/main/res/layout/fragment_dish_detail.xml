@@ -4,13 +4,14 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:includeFontPadding="false"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="5dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
-        android:paddingTop="5dp"
-        android:textSize="30dp"
+        android:paddingTop="0dp"
+        android:textSize="30sp"
         android:textColor="@android:color/black"
         android:text="@string/StringDettaglioOrdine"
         android:layout_alignParentTop="true"
@@ -29,7 +30,6 @@
         android:textColor="@android:color/black"
         android:id="@+id/dettaglio_dish"
         android:layout_below="@+id/dettaglio_ordine"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
     <TextView
@@ -43,7 +43,6 @@
         android:text="Medium Text"
         android:id="@+id/dettaglio_ordinati"
         android:layout_below="@+id/dettaglio_dish"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
     <TextView
@@ -57,7 +56,6 @@
         android:text="Medium Text"
         android:id="@+id/dettaglio_da_servire"
         android:layout_below="@+id/dettaglio_ordinati"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
     <TextView
@@ -71,7 +69,6 @@
         android:text="Medium Text"
         android:id="@+id/dettaglio_costo_unitario"
         android:layout_below="@+id/dettaglio_da_servire"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
     <TextView
@@ -85,7 +82,6 @@
         android:text="Medium Text"
         android:id="@+id/dettaglio_costo_ordinati"
         android:layout_below="@+id/dettaglio_costo_unitario"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
     <TextView
@@ -99,6 +95,5 @@
         android:text="Medium Text"
         android:id="@+id/dettaglio_costo_totale"
         android:layout_below="@+id/dettaglio_costo_ordinati"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 </RelativeLayout>

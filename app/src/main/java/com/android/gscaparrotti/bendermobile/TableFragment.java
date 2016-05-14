@@ -39,6 +39,7 @@ public class TableFragment extends Fragment {
     private List<Order> list = new LinkedList<>();
     private DishAdapter adapter;
     private Timer timer;
+    private String ip;
 
     private OnTableFragmentInteractionListener mListener;
 
@@ -74,7 +75,8 @@ public class TableFragment extends Fragment {
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+                new ServerOrdersDownloader().execute(tableNumber);
             }
         });
         return view;
@@ -92,6 +94,7 @@ public class TableFragment extends Fragment {
         super.onAttach(context);
         if (context instanceof OnTableFragmentInteractionListener) {
             mListener = (OnTableFragmentInteractionListener) context;
+            ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnMainFragmentInteractionListener");
@@ -123,12 +126,12 @@ public class TableFragment extends Fragment {
     }
 
     private void startTasks() {
-        new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+        new ServerOrdersDownloader().execute(tableNumber);
         timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+                new ServerOrdersDownloader().execute(tableNumber);
             }
         }, 0, 1000);
     }
@@ -199,7 +202,7 @@ public class TableFragment extends Fragment {
             final ServerInteractor uploader = ServerInteractor.getInstance();
             boolean result = false;
             try {
-                final Object resultFromServer = uploader.sendCommandAndGetResult("10.0.2.2", 6789, params[0]);
+                final Object resultFromServer = uploader.sendCommandAndGetResult(ip, 6789, params[0]);
                 final String stringResult = (String) resultFromServer;
                 if (stringResult.equals("ORDER UPDATED CORRECTLY")) {
                     result = true;
@@ -212,11 +215,11 @@ public class TableFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
-            new ServerOrdersDownloader().execute("GET TABLE " + tableNumber);
+            new ServerOrdersDownloader().execute(tableNumber);
         }
     }
 
-    private class ServerOrdersDownloader extends AsyncTask<String, Void, List<Order>> {
+    private class ServerOrdersDownloader extends AsyncTask<Integer, Void, List<Order>> {
 
         @Override
         protected void onPreExecute() {
@@ -225,12 +228,12 @@ public class TableFragment extends Fragment {
         }
 
         @Override
-        protected List<Order> doInBackground(String... params) {
+        protected List<Order> doInBackground(Integer... params) {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
             try {
-                final Object input = dataDownloader.sendCommandAndGetResult("10.0.2.2", 6789, params[0]);
+                final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));

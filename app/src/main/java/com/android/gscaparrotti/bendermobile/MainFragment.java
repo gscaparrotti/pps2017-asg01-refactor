@@ -30,7 +30,7 @@ public class MainFragment extends Fragment {
     private GridView gv;
     private TableAdapter ta;
     private Context context;
-    private int tableNumber;
+    private String ip;
 
     private OnMainFragmentInteractionListener mListener;
 
@@ -55,6 +55,13 @@ public class MainFragment extends Fragment {
         ta = new TableAdapter(context);
         gv.setAdapter(ta);
         new TableNumberGetter().execute();
+        view.findViewById(R.id.mainUpdate).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+                new TableNumberGetter().execute();
+            }
+        });
         return view;
     }
 
@@ -72,6 +79,7 @@ public class MainFragment extends Fragment {
         this.context = context;
         if (context instanceof OnMainFragmentInteractionListener) {
             mListener = (OnMainFragmentInteractionListener) context;
+            ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnMainFragmentInteractionListener");
@@ -90,7 +98,7 @@ public class MainFragment extends Fragment {
 
     private class TableAdapter extends BaseAdapter {
 
-        private List<Integer> list = new LinkedList<>();
+        private int n = 0;
         private LayoutInflater inflater;
 
         TableAdapter(Context context) {
@@ -99,16 +107,16 @@ public class MainFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return list.size();
+            return n;
         }
 
         public void addElement(final Integer i) {
-            list.add(i);
+            n++;
         }
 
         @Override
         public Integer getItem(int position) {
-            return Integer.valueOf(list.get(position));
+            return position + 1;
         }
 
         @Override
@@ -142,7 +150,7 @@ public class MainFragment extends Fragment {
             final String command = "GET AMOUNT";
             Integer amount = 0;
             try {
-                amount = (Integer) serverInteractor.sendCommandAndGetResult("10.0.2.2", 6789, command);
+                amount = (Integer) serverInteractor.sendCommandAndGetResult(ip, 6789, command);
             } catch (Exception e) {
                 Log.e("exception", e.getMessage());
                 amount = -1;

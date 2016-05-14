@@ -4,9 +4,13 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toolbar;
 
 import java.io.IOException;
 
@@ -16,7 +20,23 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setActionBar(myToolbar);
+        myToolbar.setTitleTextColor(Color.WHITE);
         replaceFragment(MainFragment.newInstance(), false);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.items, menu);
+        menu.findItem(R.id.settings_menu).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                replaceFragment(new SettingsFragment(), true);
+                return true;
+            }
+        });
+        return true;
     }
 
     @Override

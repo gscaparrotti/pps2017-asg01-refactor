@@ -13,4 +13,8 @@
     <string name="StringCostoUnitario">"Costo unitario: "</string>
     <string name="StringCostoServiti">"Costo serviti: "</string>
     <string name="StringCOstoTotale">"Costo totale: "</string>
+    <string name="settings">Impostazioni</string>
+    <string name="main_update">Aggiorna</string>
+    <string name="settings_ip_text">Inserisci qui l\' IP del server</string>
+    <string name="ip_button">Fatto</string>
 </resources>
