@@ -31,8 +31,12 @@ public class ServerInteractor {
     public Object sendCommandAndGetResult(final String address, final int port, final Object input) throws IOException, ClassNotFoundException {
         Object datas;
         if (!socket.isConnected()) {
-            socket.connect(new InetSocketAddress(address, port), 1000);
-            socket.setSoTimeout(1000);
+            try {
+                socket.connect(new InetSocketAddress(address, port), 1000);
+                socket.setSoTimeout(1000);
+            } catch (IOException e) {
+                interactionEnded();
+            }
         }
         final OutputStream os = socket.getOutputStream();
         final InputStream is = socket.getInputStream();
