@@ -150,11 +150,11 @@ public class MainFragment extends Fragment {
             final ServerInteractor serverInteractor = ServerInteractor.getInstance();
             final String command = "GET AMOUNT";
             Integer amount = 0;
-            try {
-                amount = (Integer) serverInteractor.sendCommandAndGetResult(ip, 6789, command);
-            } catch (Exception e) {
-                Log.e("exception", e.getMessage());
+            final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
+            if (input instanceof Exception) {
                 amount = -1;
+            } else if (input instanceof Integer){
+                amount = (Integer) input;
             }
             return amount;
         }

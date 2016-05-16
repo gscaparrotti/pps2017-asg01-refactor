@@ -232,16 +232,17 @@ public class TableFragment extends Fragment {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
-            try {
-                final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
+            final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
+            if (input instanceof Exception) {
+                final Exception e = (Exception) input;
+                e.printStackTrace();
+                Log.e("exception", e.toString());
+                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0), new Pair<>(0, 1)));
+            } else if (input instanceof Map){
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
                 }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-                Log.e("exception", e.toString());
-                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0), new Pair<>(0, 1)));
             }
             return temp;
         }
