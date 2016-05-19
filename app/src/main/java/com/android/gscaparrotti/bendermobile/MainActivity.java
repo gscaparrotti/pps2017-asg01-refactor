@@ -44,17 +44,18 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
         super.onStop();
         Log.d("STOP", "STOP");
         final ServerInteractor interactor = ServerInteractor.getInstance();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        interactor.sendCommandAndGetResult("10.0.2.2", 6789, "CLOSE CONNECTION");
-                        interactor.interactionEnded();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        final String ip = getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    interactor.sendCommandAndGetResult(ip, 6789, "CLOSE CONNECTION");
+                    interactor.interactionEnded();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }).start();
+            }
+        }).start();
     }
 
     @Override
@@ -85,4 +86,6 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
     public void onLoadingInProgress() {
 
     }
+
+
 }

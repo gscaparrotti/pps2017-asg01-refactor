@@ -1,7 +1,5 @@
 package com.android.gscaparrotti.bendermobile;
 
-import android.widget.Toast;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -9,7 +7,6 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
 
 /**
  * Created by gscap_000 on 01/05/2016.
@@ -74,5 +71,28 @@ public class ServerInteractor {
         socket.close();
         socket = null;
         instance = null;
+    }
+
+    private class ServerReceiver extends Thread {
+
+        final ObjectInputStream ois;
+        final boolean keepListening = true;
+
+        private ServerReceiver(ObjectInputStream ois) {
+            this.ois = ois;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            while (keepListening) {
+                try {
+                    Object inputObject = ois.readObject();
+
+                } catch (ClassNotFoundException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

@@ -238,7 +238,7 @@ public class TableFragment extends Fragment {
                 e.printStackTrace();
                 Log.e("exception", e.toString());
                 temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0), new Pair<>(0, 1)));
-            } else if (input instanceof Map){
+            } else if (input instanceof Map) {
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
