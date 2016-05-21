@@ -6,15 +6,12 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toolbar;
 
-import java.io.IOException;
-
-public class MainActivity extends Activity implements TableFragment.OnTableFragmentInteractionListener, MainFragment.OnMainFragmentInteractionListener {
+public class MainActivity extends Activity implements TableFragment.OnTableFragmentInteractionListener, MainFragment.OnMainFragmentInteractionListener, AddDishFragment.OnAddDishFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,14 +74,14 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
     }
 
     @Override
-    public void onTablePressed(int tableNumber) {
+    public void onTablePressedEventFired(int tableNumber) {
         replaceFragment(TableFragment.newInstance(tableNumber), true);
     }
 
 
     @Override
-    public void onLoadingInProgress() {
-
+    public void onAddDishEventFired(final int tableNumber) {
+        replaceFragment(AddDishFragment.newInstance(tableNumber), true);
     }
 
 

@@ -17,4 +17,9 @@
     <string name="main_update">Aggiorna</string>
     <string name="settings_ip_text">Inserisci qui l\' IP del server</string>
     <string name="ip_button">Fatto</string>
+    <string name="orderAddSuccess">Ordine aggiunto correttamente</string>
+    <string name="ResetConfirmDialogTitle">Conferma Reset</string>
+    <string name="ResetConfirmDialogQuestion">Vuoi davvero ripristinare il tavolo selezionato?</string>
+    <string name="ServerError">Impossibile comunicare col server</string>
+    <string name="ResetSuccess">Tavolo ripristinato con successo</string>
 </resources>

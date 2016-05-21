@@ -7,20 +7,14 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +69,16 @@ public class TableFragment extends Fragment {
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
-                new ServerOrdersDownloader().execute(tableNumber);
+                updateAndStartTasks();
+            }
+        });
+        Button addDish = (Button) view.findViewById(R.id.addToTable);
+        addDish.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mListener != null) {
+                    mListener.onAddDishEventFired(tableNumber);
+                }
             }
         });
         return view;
@@ -86,7 +88,7 @@ public class TableFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d("FRAGMENT ON RESUME", "FRAGMENT ON RESUME");
-        startTasks();
+        updateAndStartTasks();
     }
 
     @Override
@@ -121,19 +123,28 @@ public class TableFragment extends Fragment {
     public void onStop() {
         super.onDestroyView();
         Log.d("FRAGMENT STOP", "FRAGMENT STOP");
-        timer.cancel();
-        timer.purge();
+        stopTasks();
     }
 
-    private void startTasks() {
+    private void updateAndStartTasks() {
         new ServerOrdersDownloader().execute(tableNumber);
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                new ServerOrdersDownloader().execute(tableNumber);
-            }
-        }, 0, 1000);
+        if (timer == null) {
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    new ServerOrdersDownloader().execute(tableNumber);
+                }
+            }, 0, 3000);
+        }
+    }
+
+    private void stopTasks() {
+        if (timer != null) {
+            timer.cancel();
+            timer.purge();
+        }
+        timer = null;
     }
 
     /**
@@ -147,7 +158,7 @@ public class TableFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnTableFragmentInteractionListener {
-        void onLoadingInProgress();
+        void onAddDishEventFired(final int tableNumber);
     }
 
     private class DishAdapter extends ArrayAdapter<Order> {
@@ -177,7 +188,7 @@ public class TableFragment extends Fragment {
                 @Override
                 public boolean onLongClick(View v) {
                     order.getAmounts().setY(order.getAmounts().getX());
-                    new ServerUpdater().execute(order);
+                    new ServerOrdersUploader().execute(order);
                     return true;
                 }
             });
@@ -195,27 +206,38 @@ public class TableFragment extends Fragment {
         }
     }
 
-    private class ServerUpdater extends AsyncTask<Order, Void, Boolean> {
+    private class ServerOrdersUploader extends AsyncTask<Order, Void, Boolean> {
+
+        private String errorMessage;
 
         @Override
         protected Boolean doInBackground(Order... params) {
             final ServerInteractor uploader = ServerInteractor.getInstance();
             boolean result = false;
-            try {
-                final Object resultFromServer = uploader.sendCommandAndGetResult(ip, 6789, params[0]);
+            final Object resultFromServer = uploader.sendCommandAndGetResult(ip, 6789, params[0]);
+            if (resultFromServer instanceof Exception) {
+                final Exception e = (Exception) resultFromServer;
+                errorMessage = e.toString();
+            } else if (resultFromServer instanceof String) {
                 final String stringResult = (String) resultFromServer;
                 if (stringResult.equals("ORDER UPDATED CORRECTLY")) {
                     result = true;
+                } else {
+                    errorMessage = stringResult;
                 }
-            } catch (final Exception e) {
-
             }
             return result;
         }
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
-            new ServerOrdersDownloader().execute(tableNumber);
+            if (aBoolean) {
+                new ServerOrdersDownloader().execute(tableNumber);
+            } else {
+                final List<Order> errors = new LinkedList<>();
+                errors.add(new Order(TableFragment.this.tableNumber, new Dish(errorMessage, 0), new Pair<>(0, 1)));
+                aggiorna(errors);
+            }
         }
     }
 
@@ -224,7 +246,6 @@ public class TableFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mListener.onLoadingInProgress();
         }
 
         @Override
@@ -238,6 +259,7 @@ public class TableFragment extends Fragment {
                 e.printStackTrace();
                 Log.e("exception", e.toString());
                 temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0), new Pair<>(0, 1)));
+                stopTasks();
             } else if (input instanceof Map) {
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {

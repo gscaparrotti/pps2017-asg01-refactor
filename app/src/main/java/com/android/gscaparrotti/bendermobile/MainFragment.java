@@ -1,8 +1,10 @@
 package com.android.gscaparrotti.bendermobile;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -50,12 +52,12 @@ public class MainFragment extends Fragment {
         gv = (GridView) view.findViewById(R.id.tablesContainer);
         ta = new TableAdapter(context);
         gv.setAdapter(ta);
-        new TableNumberGetter().execute();
+        ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+        new TableAmountDownloader().execute();
         view.findViewById(R.id.mainUpdate).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
-                new TableNumberGetter().execute();
+                new TableAmountDownloader().execute();
             }
         });
         return view;
@@ -89,7 +91,7 @@ public class MainFragment extends Fragment {
     }
 
     public interface OnMainFragmentInteractionListener {
-        void onTablePressed(int tableNumber);
+        void onTablePressedEventFired(int tableNumber);
     }
 
     private class TableAdapter extends BaseAdapter {
@@ -128,17 +130,68 @@ public class MainFragment extends Fragment {
             final Integer table = getItem(position);
             final TextView tableView = (TextView) convertView.findViewById(R.id.table);
             tableView.setText(getString(R.string.itemTableText) + " " + table);
+            convertView.setLongClickable(true);
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mListener.onTablePressed(table);
+                    mListener.onTablePressedEventFired(table);
+                }
+            });
+            convertView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle(getString(R.string.ResetConfirmDialogTitle))
+                            .setMessage(R.string.ResetConfirmDialogQuestion)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    new TableResetRequestUploader().execute(table);
+                                }})
+                            .setNegativeButton(android.R.string.no, null).show();
+                    return true;
                 }
             });
             return convertView;
         }
     }
 
-    private class TableNumberGetter extends AsyncTask<Void, Void, Integer> {
+    private class TableResetRequestUploader extends AsyncTask<Integer, Void, Boolean> {
+
+        private String errorMessage;
+
+        @Override
+        protected Boolean doInBackground(final Integer... params) {
+            final ServerInteractor serverInteractor = ServerInteractor.getInstance();
+            final String command = "RESET TABLE " + params[0];
+            boolean success = false;
+            final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
+            if (input instanceof Exception) {
+                final Exception e = (Exception) input;
+                errorMessage = e.toString();
+            } else if (input instanceof String) {
+                final String stringInput = (String) input;
+                if (stringInput.equals("TABLE RESET CORRECTLY")) {
+                    success = true;
+                } else {
+                    errorMessage = stringInput;
+                }
+            }
+            return success;
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            super.onPostExecute(success);
+            if (success) {
+                Toast.makeText(MainFragment.this.context, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(MainFragment.this.context, errorMessage, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private class TableAmountDownloader extends AsyncTask<Void, Void, Integer> {
 
         @Override
         protected Integer doInBackground(final Void... params) {
@@ -158,7 +211,7 @@ public class MainFragment extends Fragment {
         protected void onPostExecute(final Integer integer) {
             super.onPostExecute(integer);
             if (integer < 0) {
-                Toast.makeText(MainFragment.this.context, "Impossibile comunicare col server", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainFragment.this.context, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
             } else {
                 MainFragment.this.tableAdded(integer);
             }

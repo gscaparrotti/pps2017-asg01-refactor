@@ -1,0 +1,203 @@
+package com.android.gscaparrotti.bendermobile;
+
+import android.app.Activity;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.NumberPicker;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import model.Dish;
+import model.IDish;
+import model.IMenu;
+import model.Order;
+import model.Pair;
+
+
+/**
+ * A simple {@link Fragment} subclass.
+ * Activities that contain this fragment must implement the
+ * {@link OnAddDishFragmentInteractionListener} interface
+ * to handle interaction events.
+ * Use the {@link AddDishFragment#newInstance} factory method to
+ * create an instance of this fragment.
+ */
+public class AddDishFragment extends Fragment {
+
+    private static final String ARG_PARAM1 = "param1";
+    private int tableNumber;
+    private List<IDish> list = new LinkedList<>();
+    private AddDishAdapter adapter;
+
+    private OnAddDishFragmentInteractionListener mListener;
+
+    public AddDishFragment() {
+        // Required empty public constructor
+    }
+
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @param tableNumber Parameter 1.
+     * @return A new instance of fragment AddDishFragment.
+     */
+    public static AddDishFragment newInstance(int tableNumber) {
+        AddDishFragment fragment = new AddDishFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_PARAM1, tableNumber);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            tableNumber = getArguments().getInt(ARG_PARAM1);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_add_dish, container, false);
+        ListView listView = (ListView) view.findViewById(R.id.addDishListView);
+        adapter = new AddDishAdapter(getActivity(), list);
+        listView.setAdapter(adapter);
+        new ServerMenuDownloader().execute();
+        return view;
+    }
+
+    @Override
+    public void onAttach(Activity context) {
+        super.onAttach(context);
+        if (context instanceof OnAddDishFragmentInteractionListener) {
+            mListener = (OnAddDishFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnAddDishFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    public void aggiorna(final List<IDish> newList) {
+        if (list != null) {
+            list.clear();
+            list.addAll(newList);
+        }
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    public interface OnAddDishFragmentInteractionListener { }
+
+    private class AddDishAdapter extends ArrayAdapter<IDish> {
+
+        private LayoutInflater inflater;
+
+        public AddDishAdapter(Context context, List<IDish> persone) {
+            super(context, 0, persone);
+            inflater = LayoutInflater.from(context);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = inflater.inflate(R.layout.item_dish_to_add, parent, false);
+            }
+            final IDish dish = getItem(position);
+            ((TextView) convertView.findViewById(R.id.addDishName)).setText(dish.getName());
+            ((TextView) convertView.findViewById(R.id.addDishPrice)).setText(Double.toString(dish.getPrice()));
+            final Button button = (Button) convertView.findViewById(R.id.addDishbutton);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Order order = new Order(tableNumber, dish, new Pair<>(1, 0));
+                    new ServerDishUploader().execute(order);
+                }
+            });
+            return convertView;
+        }
+    }
+
+    private class ServerMenuDownloader extends AsyncTask<Void, Void, List<IDish>> {
+
+        @Override
+        protected List<IDish> doInBackground(Void... params) {
+            //qui effettuerò la chiamata al server
+            final List<IDish> temp = new LinkedList<>();
+            final ServerInteractor dataDownloader = ServerInteractor.getInstance();
+            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET MENU");
+            if (input instanceof Exception) {
+                final Exception e = (Exception) input;
+                e.printStackTrace();
+                Log.e("exception", e.toString());
+                temp.add(new Dish(e.toString(), 0));
+            } else if (input instanceof IMenu) {
+                final IMenu datas = (IMenu) input;
+                for(final IDish d : datas.getDishesArray()) {
+                    temp.add(d);
+                }
+            }
+            return temp;
+        }
+
+        @Override
+        protected void onPostExecute(List<IDish> orders) {
+            super.onPostExecute(orders);
+            AddDishFragment.this.aggiorna(orders);
+        }
+    }
+
+    private class ServerDishUploader extends AsyncTask<Order, Void, String> {
+
+        @Override
+        protected String doInBackground(Order... params) {
+            String output = getActivity().getString(R.string.orderAddSuccess);
+            final ServerInteractor uploader = ServerInteractor.getInstance();
+            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            for (final Order order : params) {
+                Object result = uploader.sendCommandAndGetResult(ip, 6789, order);
+                if (result instanceof Exception) {
+                    final Exception e = (Exception) result;
+                    e.printStackTrace();
+                    Log.e("exception", e.toString());
+                    output = e.toString();
+                    break;
+                } else if (result instanceof String) {
+                    final String stringResult = (String) result;
+                    if (!result.equals("ORDER ADDED CORRECTLY")) {
+                        output = stringResult;
+                        break;
+                    }
+                }
+            }
+            return output;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
+        }
+    }
+}
