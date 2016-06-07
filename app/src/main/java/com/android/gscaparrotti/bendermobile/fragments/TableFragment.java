@@ -1,4 +1,4 @@
-package com.android.gscaparrotti.bendermobile;
+package com.android.gscaparrotti.bendermobile.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -14,6 +14,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.android.gscaparrotti.bendermobile.R;
+import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
 import java.util.Collections;
 import java.util.Comparator;

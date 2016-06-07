@@ -1,4 +1,4 @@
-package com.android.gscaparrotti.bendermobile;
+package com.android.gscaparrotti.bendermobile.fragments;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,9 +12,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.gscaparrotti.bendermobile.R;
+import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
 import java.util.LinkedList;
 import java.util.List;

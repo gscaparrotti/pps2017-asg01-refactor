@@ -1,4 +1,4 @@
-package com.android.gscaparrotti.bendermobile;
+package com.android.gscaparrotti.bendermobile.fragments;
 
 import android.app.Fragment;
 import android.content.SharedPreferences;
@@ -10,9 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import com.android.gscaparrotti.bendermobile.R;
 
 public class SettingsFragment extends Fragment {
 

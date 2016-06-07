@@ -8,7 +8,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:layout_below="@+id/my_toolbar"
-    tools:context="com.android.gscaparrotti.bendermobile.MainActivity">
+    tools:context=".activities.MainActivity">
 
     <GridView
         android:background="#000000"

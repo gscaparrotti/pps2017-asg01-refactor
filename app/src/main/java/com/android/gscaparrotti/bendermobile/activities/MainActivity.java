@@ -1,4 +1,4 @@
-package com.android.gscaparrotti.bendermobile;
+package com.android.gscaparrotti.bendermobile.activities;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -10,6 +10,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toolbar;
+
+import com.android.gscaparrotti.bendermobile.R;
+import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
+import com.android.gscaparrotti.bendermobile.fragments.AddDishFragment;
+import com.android.gscaparrotti.bendermobile.fragments.MainFragment;
+import com.android.gscaparrotti.bendermobile.fragments.SettingsFragment;
+import com.android.gscaparrotti.bendermobile.fragments.TableFragment;
 
 public class MainActivity extends Activity implements TableFragment.OnTableFragmentInteractionListener, MainFragment.OnMainFragmentInteractionListener, AddDishFragment.OnAddDishFragmentInteractionListener {
 

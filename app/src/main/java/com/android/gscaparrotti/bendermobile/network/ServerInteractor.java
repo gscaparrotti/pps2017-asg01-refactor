@@ -1,4 +1,4 @@
-package com.android.gscaparrotti.bendermobile;
+package com.android.gscaparrotti.bendermobile.network;
 
 import java.io.IOException;
 import java.io.InputStream;

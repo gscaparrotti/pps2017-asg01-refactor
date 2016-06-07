@@ -1,4 +1,4 @@
-package com.android.gscaparrotti.bendermobile;
+package com.android.gscaparrotti.bendermobile.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,6 +14,9 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.gscaparrotti.bendermobile.R;
+import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
 /**
  * A simple {@link Fragment} subclass.
