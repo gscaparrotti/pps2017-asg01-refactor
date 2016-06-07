@@ -60,6 +60,12 @@ public class MainFragment extends Fragment {
                 new TableAmountDownloader().execute();
             }
         });
+        view.findViewById(R.id.allPending).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mListener.onTablePressedEventFired(0);
+            }
+        });
         return view;
     }
 
@@ -68,7 +74,7 @@ public class MainFragment extends Fragment {
         for (int i = 0; i < tableNumber - current; i++) {
             ta.addElement(i + 1);
         }
-        gv.setAdapter(ta);
+        ta.notifyDataSetChanged();
     }
 
     @Override
@@ -129,7 +135,7 @@ public class MainFragment extends Fragment {
             }
             final Integer table = getItem(position);
             final TextView tableView = (TextView) convertView.findViewById(R.id.table);
-            tableView.setText(getString(R.string.itemTableText) + " " + table);
+            tableView.setText(getString(R.string.itemTableText) + table);
             convertView.setLongClickable(true);
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override

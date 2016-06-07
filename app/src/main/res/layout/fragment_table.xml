@@ -18,8 +18,14 @@
         android:text="@string/tableTitle"
         android:id="@+id/tableTitle"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_alignParentStart="true"
+        android:layout_alignEnd="@+id/dishesList"
+        android:autoText="false"
+        android:gravity="center_horizontal"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:elegantTextHeight="false" />
 
     <View android:id="@+id/fakeView"
         android:layout_alignParentBottom="true"

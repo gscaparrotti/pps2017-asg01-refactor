@@ -41,7 +41,7 @@ public class ServerInteractor {
                     datas = e;
                     interactionEnded();
                     return datas;
-                } catch (IOException e1) {
+                } catch (Exception e1) {
                     datas = e1;
                     return datas;
                 }
@@ -68,7 +68,9 @@ public class ServerInteractor {
     }
 
     public void interactionEnded() throws IOException {
-        socket.close();
+        if (socket != null) {
+            socket.close();
+        }
         socket = null;
         instance = null;
     }

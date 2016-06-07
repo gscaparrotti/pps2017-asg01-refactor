@@ -15,6 +15,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -103,10 +105,18 @@ public class TableFragment extends Fragment {
         }
     }
 
+
+
     public void aggiorna(final List<Order> newList) {
         if (list != null) {
             list.clear();
             list.addAll(newList);
+            Collections.sort(list, new Comparator<Order>() {
+                @Override
+                public int compare(Order o1, Order o2) {
+                    return (o2.getAmounts().getX() - o2.getAmounts().getY()) - (o1.getAmounts().getX() - o1.getAmounts().getY());
+                }
+            });
         }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
@@ -192,6 +202,13 @@ public class TableFragment extends Fragment {
                     return true;
                 }
             });
+            convertView.findViewById(R.id.removeButton).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final Order toRemove = new Order(order.getTable(), order.getDish(), new Pair<>(-1, 1));
+                    new ServerOrdersUploader().execute(toRemove);
+                }
+            });
             ((TextView) convertView.findViewById(R.id.dish)).setText(order.getDish().getName());
             ((TextView) convertView.findViewById(R.id.dishToServe))
                     .setText(getResources().getString(R.string.StringOrdinati) + Integer.toString(order.getAmounts().getX()));
@@ -253,7 +270,14 @@ public class TableFragment extends Fragment {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
-            final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
+            Object input = null;
+            if (tableNumber > 0) {
+                input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
+            } else if (tableNumber == 0) {
+                input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET PENDING ORDERS");
+            } else {
+                input = new Exception("Invalid Table Number");
+            }
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
                 e.printStackTrace();
@@ -261,9 +285,16 @@ public class TableFragment extends Fragment {
                 temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0), new Pair<>(0, 1)));
                 stopTasks();
             } else if (input instanceof Map) {
+                //noinspection unchecked
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
+                }
+            } else if (input instanceof List) {
+                //noinspection unchecked
+                final List<Order> datas = (List<Order>) input;
+                for (final Order o : datas) {
+                    temp.add(new Order(o.getTable(), new Dish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice()), o.getAmounts()));
                 }
             }
             return temp;
