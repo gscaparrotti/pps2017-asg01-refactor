@@ -27,7 +27,12 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setActionBar(myToolbar);
         myToolbar.setTitleTextColor(Color.WHITE);
-        replaceFragment(MainFragment.newInstance(), false);
+        if (savedInstanceState == null) {
+            replaceFragment(MainFragment.newInstance(), false);
+        } else {
+            getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            replaceFragment(MainFragment.newInstance(), false);
+        }
     }
 
     @Override
