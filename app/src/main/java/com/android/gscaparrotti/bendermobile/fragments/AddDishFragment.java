@@ -199,7 +199,9 @@ public class AddDishFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
+            if (getActivity() != null) {
+                Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

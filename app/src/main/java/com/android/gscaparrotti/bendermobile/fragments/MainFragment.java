@@ -192,10 +192,12 @@ public class MainFragment extends Fragment {
         @Override
         protected void onPostExecute(final Boolean success) {
             super.onPostExecute(success);
-            if (success) {
-                Toast.makeText(MainFragment.this.context, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(MainFragment.this.context, errorMessage, Toast.LENGTH_LONG).show();
+            if (getActivity() != null) {
+                if (success) {
+                    Toast.makeText(MainFragment.this.context, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainFragment.this.context, errorMessage, Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
@@ -219,10 +221,12 @@ public class MainFragment extends Fragment {
         @Override
         protected void onPostExecute(final Integer integer) {
             super.onPostExecute(integer);
-            if (integer < 0) {
-                Toast.makeText(MainFragment.this.context, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
-            } else {
-                MainFragment.this.tableAdded(integer);
+            if (getActivity() != null) {
+                if (integer < 0) {
+                    Toast.makeText(MainFragment.this.context, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
+                } else {
+                    MainFragment.this.tableAdded(integer);
+                }
             }
         }
     }

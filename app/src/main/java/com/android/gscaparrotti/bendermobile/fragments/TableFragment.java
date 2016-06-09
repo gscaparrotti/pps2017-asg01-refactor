@@ -66,7 +66,11 @@ public class TableFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_table, container, false);
         TextView text = (TextView) view.findViewById(R.id.tableTitle);
-        text.setText(text.getText() + " " + Integer.toString(tableNumber));
+        if (tableNumber > 0) {
+            text.setText(text.getText() + " " + Integer.toString(tableNumber));
+        } else if (tableNumber == 0) {
+            text.setText(getString(R.string.ViewAllPendingOrders));
+        }
         ListView listView = (ListView) view.findViewById(R.id.dishesList);
         adapter = new DishAdapter(getActivity(), list);
         listView.setAdapter(adapter);
@@ -86,6 +90,9 @@ public class TableFragment extends Fragment {
                 }
             }
         });
+        if (tableNumber == 0) {
+            addDish.setClickable(false);
+        }
         return view;
     }
 
@@ -201,7 +208,13 @@ public class TableFragment extends Fragment {
                 @Override
                 public boolean onLongClick(View v) {
                     order.getAmounts().setY(order.getAmounts().getX());
-                    new ServerOrdersUploader().execute(order);
+                    if (tableNumber == 0) {
+                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().indexOf(" - ")), order.getDish().getPrice());
+                        final Order newOrder = new Order(order.getTable(), dish, order.getAmounts());
+                        new ServerOrdersUploader().execute(newOrder);
+                    } else {
+                        new ServerOrdersUploader().execute(order);
+                    }
                     return true;
                 }
             });
