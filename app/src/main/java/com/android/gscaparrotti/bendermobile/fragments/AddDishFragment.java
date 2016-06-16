@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -78,6 +79,25 @@ public class AddDishFragment extends Fragment {
         ListView listView = (ListView) view.findViewById(R.id.addDishListView);
         adapter = new AddDishAdapter(getActivity(), list);
         listView.setAdapter(adapter);
+        Button button = (Button) view.findViewById(R.id.buttonAggiungi);
+        final EditText price = (EditText) view.findViewById(R.id.editText_prezzo);
+        final EditText name = (EditText) view.findViewById(R.id.editText_nome);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    String nameString = name.getText().toString();
+                    Double priceDouble = Double.parseDouble(price.getText().toString());
+                    IDish newDish = new Dish(nameString, priceDouble);
+                    Order newOrder = new Order(tableNumber, newDish, new Pair<>(1, 0));
+                    new ServerDishUploader().execute(newOrder);
+                } catch (NumberFormatException e) {
+                    if (AddDishFragment.this.getActivity() != null) {
+                        Toast.makeText(AddDishFragment.this.getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
         new ServerMenuDownloader().execute();
         return view;
     }

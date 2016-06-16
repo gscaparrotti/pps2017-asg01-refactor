@@ -66,6 +66,16 @@
         android:id="@+id/dishesList"
         android:layout_below="@+id/tableTitleDetail"
         android:layout_centerHorizontal="true"
-        android:layout_above="@+id/addToTable" />
+        android:layout_above="@+id/totalPrice" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/PrezzoTotale"
+        android:id="@+id/totalPrice"
+        android:layout_above="@+id/addToTable"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>
