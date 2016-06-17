@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:autofit="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/itemTableLayout">
 
-    <TextView
+    <me.grantland.widget.AutofitTextView
         android:id="@+id/dish"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="4dp"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:textSize="18sp"
+        autofit:minTextSize="10sp"
         android:text="Medium Text"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@android:color/black"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/removeButton" />
 
     <TextView
         android:id="@+id/dishServed"
@@ -20,9 +25,10 @@
         android:layout_height="wrap_content"
         android:padding="4dp"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="dishServed"
+        android:text="@string/StringDaServire"
         android:layout_below="@+id/dishToServe"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/removeButton" />
 
     <TextView
         android:id="@+id/dishToServe"
@@ -30,24 +36,19 @@
         android:layout_height="wrap_content"
         android:padding="4dp"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="dishToServe"
+        android:text="@string/StringOrdinati"
         android:layout_below="@+id/dish"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/removeButton" />
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Remove"
+        android:id="@+id/removeButton"
+        android:layout_gravity="right|center_vertical"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignBottom="@+id/dishServed"
-        android:layout_toEndOf="@+id/dish">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/Remove"
-            android:id="@+id/removeButton"
-            android:layout_gravity="right|center_vertical" />
-    </FrameLayout>
+        android:layout_alignBottom="@+id/dishServed" />
 
 </RelativeLayout>
