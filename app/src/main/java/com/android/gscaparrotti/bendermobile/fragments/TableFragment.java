@@ -281,7 +281,7 @@ public class TableFragment extends Fragment {
                         aggiorna(errors);
                     }
                 } catch (Exception e) {
-                    if (TableFragment.this.getActivity() != null) {
+                    if (!(e instanceof NullPointerException) && TableFragment.this.getActivity() != null) {
                         Toast.makeText(getActivity(), "Chiamare Jack", Toast.LENGTH_LONG).show();
                     }
                 }
@@ -339,7 +339,7 @@ public class TableFragment extends Fragment {
                     aggiorna(orders);
                 }
             } catch (Exception e) {
-                if (TableFragment.this.getActivity() != null) {
+                if (!(e instanceof NullPointerException) && TableFragment.this.getActivity() != null) {
                     Toast.makeText(getActivity(), "Chiamare Jack", Toast.LENGTH_LONG).show();
                 }
             }
