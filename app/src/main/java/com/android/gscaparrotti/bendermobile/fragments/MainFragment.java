@@ -55,7 +55,6 @@ public class MainFragment extends Fragment {
         gv = (GridView) view.findViewById(R.id.tablesContainer);
         ta = new TableAdapter(context);
         gv.setAdapter(ta);
-        ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
         new TableAmountDownloader().execute();
         view.findViewById(R.id.mainUpdate).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,7 +224,9 @@ public class MainFragment extends Fragment {
                 if (integer < 0) {
                     Toast.makeText(MainFragment.this.context, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
                 } else {
-                    MainFragment.this.tableAdded(integer);
+                    if (MainFragment.this.isVisible()) {
+                        MainFragment.this.tableAdded(integer);
+                    }
                 }
             }
         }

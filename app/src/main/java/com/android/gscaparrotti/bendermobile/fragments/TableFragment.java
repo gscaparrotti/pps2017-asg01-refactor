@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.gscaparrotti.bendermobile.R;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
@@ -275,7 +276,15 @@ public class TableFragment extends Fragment {
             } else {
                 final List<Order> errors = new LinkedList<>();
                 errors.add(new Order(TableFragment.this.tableNumber, new Dish(errorMessage, 0), new Pair<>(0, 1)));
-                aggiorna(errors);
+                try {
+                    if (TableFragment.this.isVisible()) {
+                        aggiorna(errors);
+                    }
+                } catch (Exception e) {
+                    if (TableFragment.this.getActivity() != null) {
+                        Toast.makeText(getActivity(), "Chiamare Jack", Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         }
     }
@@ -325,7 +334,15 @@ public class TableFragment extends Fragment {
         @Override
         protected void onPostExecute(List<Order> orders) {
             super.onPostExecute(orders);
-            TableFragment.this.aggiorna(orders);
+            try {
+                if (TableFragment.this.isVisible()) {
+                    aggiorna(orders);
+                }
+            } catch (Exception e) {
+                if (TableFragment.this.getActivity() != null) {
+                    Toast.makeText(getActivity(), "Chiamare Jack", Toast.LENGTH_LONG).show();
+                }
+            }
         }
     }
 
