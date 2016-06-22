@@ -137,7 +137,7 @@ public class TableFragment extends Fragment {
             totalPrice += o.getAmounts().getX() * o.getDish().getPrice();
         }
         TextView price = (TextView) getView().findViewById(R.id.totalPrice);
-        price.setText(getResources().getString(R.string.PrezzoTotale) + Double.toString(totalPrice) + getResources().getString(R.string.valute));
+        price.setText(getResources().getString(R.string.PrezzoTotale) + String.format("%.2f", totalPrice) + getResources().getString(R.string.valute));
     }
 
     @Override

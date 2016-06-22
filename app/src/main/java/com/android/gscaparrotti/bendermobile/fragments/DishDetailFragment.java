@@ -41,9 +41,9 @@ public class DishDetailFragment extends DialogFragment {
         ((TextView) v.findViewById(R.id.dettaglio_dish)).setText(order.getDish().getName());
         ((TextView) v.findViewById(R.id.dettaglio_ordinati)).setText(r.getString(R.string.StringOrdinati) + order.getAmounts().getX());
         ((TextView) v.findViewById(R.id.dettaglio_da_servire)).setText(r.getString(R.string.StringDaServire) + (order.getAmounts().getX() - order.getAmounts().getY()));
-        ((TextView) v.findViewById(R.id.dettaglio_costo_unitario)).setText(r.getString(R.string.StringCostoUnitario) + order.getDish().getPrice());
-        ((TextView) v.findViewById(R.id.dettaglio_costo_ordinati)).setText(r.getString(R.string.StringCostoServiti) + (order.getAmounts().getY() * order.getDish().getPrice()));
-        ((TextView) v.findViewById(R.id.dettaglio_costo_totale)).setText(r.getString(R.string.StringCOstoTotale) + (order.getAmounts().getX() * order.getDish().getPrice()));
+        ((TextView) v.findViewById(R.id.dettaglio_costo_unitario)).setText(r.getString(R.string.StringCostoUnitario) + String.format("%.2f", order.getDish().getPrice()));
+        ((TextView) v.findViewById(R.id.dettaglio_costo_ordinati)).setText(r.getString(R.string.StringCostoServiti) + String.format("%.2f", order.getAmounts().getY() * order.getDish().getPrice()));
+        ((TextView) v.findViewById(R.id.dettaglio_costo_totale)).setText(r.getString(R.string.StringCOstoTotale) + String.format("%.2f", order.getAmounts().getX() * order.getDish().getPrice()));
         return v;
     }
 }

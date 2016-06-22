@@ -149,7 +149,7 @@ public class AddDishFragment extends Fragment {
             }
             final IDish dish = getItem(position);
             ((TextView) convertView.findViewById(R.id.addDishName)).setText(dish.getName());
-            ((TextView) convertView.findViewById(R.id.addDishPrice)).setText(Double.toString(dish.getPrice()));
+            ((TextView) convertView.findViewById(R.id.addDishPrice)).setText(String.format("%.2f", dish.getPrice()));
             final Button button = (Button) convertView.findViewById(R.id.addDishbutton);
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
