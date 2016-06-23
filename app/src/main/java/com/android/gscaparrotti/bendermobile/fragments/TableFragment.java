@@ -31,6 +31,7 @@ import model.Dish;
 import model.IDish;
 import model.Order;
 import model.Pair;
+import model.OrderedDish;
 
 public class TableFragment extends Fragment {
 
@@ -122,12 +123,27 @@ public class TableFragment extends Fragment {
         if (list != null) {
             list.clear();
             list.addAll(newList);
-            Collections.sort(list, new Comparator<Order>() {
-                @Override
-                public int compare(Order o1, Order o2) {
-                    return (o2.getAmounts().getX() - o2.getAmounts().getY()) - (o1.getAmounts().getX() - o1.getAmounts().getY());
-                }
-            });
+            if (tableNumber != 0) {
+                Collections.sort(list, new Comparator<Order>() {
+                    @Override
+                    public int compare(Order o1, Order o2) {
+                        return (o2.getAmounts().getX() - o2.getAmounts().getY()) - (o1.getAmounts().getX() - o1.getAmounts().getY());
+                    }
+                });
+            } else {
+                Collections.sort(list, new Comparator<Order>() {
+                    @Override
+                    public int compare(Order o1, Order o2) {
+                        if (o1.getDish() instanceof OrderedDish && o2.getDish() instanceof OrderedDish) {
+                            return (((OrderedDish) o1.getDish()).getTime().compareTo(((OrderedDish) o2.getDish()).getTime()));
+                        } else if (o1.getDish() instanceof OrderedDish && !(o2.getDish() instanceof OrderedDish)) {
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    }
+                });
+            }
         }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
@@ -228,8 +244,13 @@ public class TableFragment extends Fragment {
             convertView.findViewById(R.id.removeButton).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    final Order toRemove = new Order(order.getTable(), order.getDish(), new Pair<>(-1, 1));
-                    new ServerOrdersUploader().execute(toRemove);
+                    if (tableNumber == 0) {
+                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().indexOf(" - ")), order.getDish().getPrice());
+                        final Order newOrder = new Order(order.getTable(), dish, new Pair<>(-1, 1));
+                        new ServerOrdersUploader().execute(newOrder);
+                    } else {
+                        new ServerOrdersUploader().execute(new Order(order.getTable(), order.getDish(), new Pair<>(-1, 1)));
+                    }
                 }
             });
             ((TextView) convertView.findViewById(R.id.dish)).setText(order.getDish().getName());
@@ -325,7 +346,13 @@ public class TableFragment extends Fragment {
                 //noinspection unchecked
                 final List<Order> datas = (List<Order>) input;
                 for (final Order o : datas) {
-                    temp.add(new Order(o.getTable(), new Dish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice()), o.getAmounts()));
+                    if (o.getDish() instanceof OrderedDish) {
+                        final OrderedDish originalDish = (OrderedDish) o.getDish();
+                        final OrderedDish tempDish = new OrderedDish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice(), originalDish);
+                        temp.add(new Order(o.getTable(), tempDish, o.getAmounts()));
+                    } else {
+                        temp.add(new Order(o.getTable(), new Dish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice()), o.getAmounts()));
+                    }
                 }
             }
             return temp;

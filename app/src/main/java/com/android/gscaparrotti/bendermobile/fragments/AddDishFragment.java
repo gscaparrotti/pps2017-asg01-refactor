@@ -27,6 +27,7 @@ import model.IDish;
 import model.IMenu;
 import model.Order;
 import model.Pair;
+import model.OrderedDish;
 
 
 /**
@@ -89,7 +90,7 @@ public class AddDishFragment extends Fragment {
                 try {
                     String nameString = name.getText().toString();
                     Double priceDouble = Double.parseDouble(price.getText().toString());
-                    IDish newDish = new Dish(nameString, priceDouble);
+                    IDish newDish = new OrderedDish(nameString, priceDouble);
                     Order newOrder = new Order(tableNumber, newDish, new Pair<>(1, 0));
                     new ServerDishUploader().execute(newOrder);
                 } catch (NumberFormatException e) {
@@ -154,7 +155,7 @@ public class AddDishFragment extends Fragment {
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Order order = new Order(tableNumber, dish, new Pair<>(1, 0));
+                    Order order = new Order(tableNumber, new OrderedDish(dish), new Pair<>(1, 0));
                     new ServerDishUploader().execute(order);
                 }
             });
