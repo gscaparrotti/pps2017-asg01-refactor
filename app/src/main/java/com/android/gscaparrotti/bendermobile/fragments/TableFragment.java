@@ -138,8 +138,10 @@ public class TableFragment extends Fragment {
                             return (((OrderedDish) o1.getDish()).getTime().compareTo(((OrderedDish) o2.getDish()).getTime()));
                         } else if (o1.getDish() instanceof OrderedDish && !(o2.getDish() instanceof OrderedDish)) {
                             return -1;
-                        } else {
+                        } else if (o2.getDish() instanceof OrderedDish && !(o1.getDish() instanceof OrderedDish)){
                             return 1;
+                        } else {
+                            return 0;
                         }
                     }
                 });
