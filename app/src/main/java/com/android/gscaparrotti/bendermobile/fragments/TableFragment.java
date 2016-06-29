@@ -234,7 +234,7 @@ public class TableFragment extends Fragment {
                 public boolean onLongClick(View v) {
                     order.getAmounts().setY(order.getAmounts().getX());
                     if (tableNumber == 0) {
-                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().indexOf(" - ")), order.getDish().getPrice());
+                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().lastIndexOf(" - ")), order.getDish().getPrice());
                         final Order newOrder = new Order(order.getTable(), dish, order.getAmounts());
                         new ServerOrdersUploader().execute(newOrder);
                     } else {
@@ -247,7 +247,7 @@ public class TableFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     if (tableNumber == 0) {
-                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().indexOf(" - ")), order.getDish().getPrice());
+                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().lastIndexOf(" - ")), order.getDish().getPrice());
                         final Order newOrder = new Order(order.getTable(), dish, new Pair<>(-1, 1));
                         new ServerOrdersUploader().execute(newOrder);
                     } else {
