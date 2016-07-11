@@ -180,7 +180,7 @@ public class TableFragment extends Fragment {
                 public void run() {
                     new ServerOrdersDownloader().execute(tableNumber);
                 }
-            }, 0, 3000);
+            }, 0, 5000);
         }
     }
 
