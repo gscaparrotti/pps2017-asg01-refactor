@@ -14,13 +14,9 @@ import java.net.Socket;
 public class ServerInteractor {
 
     private Socket socket;
-    private static ServerInteractor instance;
 
     public static ServerInteractor getInstance() {
-        if (instance == null) {
-            instance = new ServerInteractor();
-        }
-        return instance;
+        return new ServerInteractor();
     }
 
     private ServerInteractor() {
@@ -54,6 +50,7 @@ public class ServerInteractor {
             outputStream.writeObject(input);
             final ObjectInputStream inputStream = new ObjectInputStream(is);
             datas = inputStream.readObject();
+            interactionEnded(); //aggiunto dopo
         } catch (IOException | ClassNotFoundException e2) {
             try {
                 interactionEnded();
@@ -72,7 +69,6 @@ public class ServerInteractor {
             socket.close();
         }
         socket = null;
-        instance = null;
     }
 
     private class ServerReceiver extends Thread {
