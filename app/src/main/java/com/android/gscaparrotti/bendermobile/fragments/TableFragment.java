@@ -40,7 +40,6 @@ public class TableFragment extends Fragment {
     private List<Order> list = new LinkedList<>();
     private DishAdapter adapter;
     private Timer timer;
-    private String ip;
 
     private OnTableFragmentInteractionListener mListener;
 
@@ -110,7 +109,6 @@ public class TableFragment extends Fragment {
         super.onAttach(context);
         if (context instanceof OnTableFragmentInteractionListener) {
             mListener = (OnTableFragmentInteractionListener) context;
-            ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnMainFragmentInteractionListener");
@@ -277,6 +275,7 @@ public class TableFragment extends Fragment {
         protected Boolean doInBackground(Order... params) {
             final ServerInteractor uploader = ServerInteractor.getInstance();
             boolean result = false;
+            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object resultFromServer = uploader.sendCommandAndGetResult(ip, 6789, params[0]);
             if (resultFromServer instanceof Exception) {
                 final Exception e = (Exception) resultFromServer;
@@ -325,6 +324,7 @@ public class TableFragment extends Fragment {
             final List<Order> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
             Object input = null;
+            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             if (tableNumber > 0) {
                 input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
             } else if (tableNumber == 0) {

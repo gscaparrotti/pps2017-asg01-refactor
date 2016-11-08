@@ -31,7 +31,6 @@ public class MainFragment extends Fragment {
     private GridView gv;
     private TableAdapter ta;
     private Context context;
-    private String ip;
 
     private OnMainFragmentInteractionListener mListener;
 
@@ -85,7 +84,6 @@ public class MainFragment extends Fragment {
         this.context = context;
         if (context instanceof OnMainFragmentInteractionListener) {
             mListener = (OnMainFragmentInteractionListener) context;
-            ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnMainFragmentInteractionListener");
@@ -173,6 +171,7 @@ public class MainFragment extends Fragment {
             final ServerInteractor serverInteractor = ServerInteractor.getInstance();
             final String command = "RESET TABLE " + params[0];
             boolean success = false;
+            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
@@ -208,6 +207,7 @@ public class MainFragment extends Fragment {
             final ServerInteractor serverInteractor = ServerInteractor.getInstance();
             final String command = "GET AMOUNT";
             Integer amount = 0;
+            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
             if (input instanceof Exception) {
                 amount = -1;

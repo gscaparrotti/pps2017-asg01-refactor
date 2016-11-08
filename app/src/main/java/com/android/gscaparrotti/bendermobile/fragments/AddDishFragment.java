@@ -44,7 +44,6 @@ public class AddDishFragment extends Fragment {
     private int tableNumber;
     private List<IDish> list = new LinkedList<>();
     private AddDishAdapter adapter;
-    private String ip;
 
     private OnAddDishFragmentInteractionListener mListener;
 
@@ -109,7 +108,6 @@ public class AddDishFragment extends Fragment {
         super.onAttach(context);
         if (context instanceof OnAddDishFragmentInteractionListener) {
             mListener = (OnAddDishFragmentInteractionListener) context;
-            ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnAddDishFragmentInteractionListener");
@@ -170,6 +168,7 @@ public class AddDishFragment extends Fragment {
             //qui effettuerò la chiamata al server
             final List<IDish> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
+            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET MENU");
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
