@@ -171,6 +171,9 @@ public class MainFragment extends Fragment {
             final ServerInteractor serverInteractor = ServerInteractor.getInstance();
             final String command = "RESET TABLE " + params[0];
             boolean success = false;
+            if (!MainFragment.this.isVisible()) {
+                return success;
+            }
             final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
             if (input instanceof Exception) {
@@ -190,7 +193,7 @@ public class MainFragment extends Fragment {
         @Override
         protected void onPostExecute(final Boolean success) {
             super.onPostExecute(success);
-            if (getActivity() != null) {
+            if (MainFragment.this.isVisible() && getActivity() != null) {
                 if (success) {
                     Toast.makeText(MainFragment.this.context, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
                 } else {

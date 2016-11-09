@@ -168,6 +168,9 @@ public class AddDishFragment extends Fragment {
             //qui effettuerò la chiamata al server
             final List<IDish> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
+            if (!AddDishFragment.this.isVisible()) {
+                return temp;
+            }
             final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET MENU");
             if (input instanceof Exception) {
@@ -205,6 +208,9 @@ public class AddDishFragment extends Fragment {
         protected String doInBackground(Order... params) {
             String output = getActivity().getString(R.string.orderAddSuccess);
             final ServerInteractor uploader = ServerInteractor.getInstance();
+            if (!AddDishFragment.this.isVisible()) {
+                return "Il Task è morto";
+            }
             final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             for (final Order order : params) {
                 Object result = uploader.sendCommandAndGetResult(ip, 6789, order);
@@ -228,7 +234,7 @@ public class AddDishFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if (getActivity() != null) {
+            if (AddDishFragment.this.isVisible() && getActivity() != null) {
                 Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
             }
         }

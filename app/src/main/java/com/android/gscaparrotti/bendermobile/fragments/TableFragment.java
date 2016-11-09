@@ -275,6 +275,9 @@ public class TableFragment extends Fragment {
         protected Boolean doInBackground(Order... params) {
             final ServerInteractor uploader = ServerInteractor.getInstance();
             boolean result = false;
+            if (!TableFragment.this.isVisible()) {
+                return result;
+            }
             final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object resultFromServer = uploader.sendCommandAndGetResult(ip, 6789, params[0]);
             if (resultFromServer instanceof Exception) {
@@ -324,6 +327,9 @@ public class TableFragment extends Fragment {
             final List<Order> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
             Object input = null;
+            if (!TableFragment.this.isVisible()) {
+                return temp;
+            }
             final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             if (tableNumber > 0) {
                 input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
