@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,9 +21,12 @@ import com.android.gscaparrotti.bendermobile.fragments.TableFragment;
 
 public class MainActivity extends Activity implements TableFragment.OnTableFragmentInteractionListener, MainFragment.OnMainFragmentInteractionListener, AddDishFragment.OnAddDishFragmentInteractionListener {
 
+    public static Context toastContext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        toastContext = this.getApplicationContext();
         setContentView(R.layout.activity_main);
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setActionBar(myToolbar);
@@ -59,7 +63,6 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
             public void run() {
                 try {
                     interactor.sendCommandAndGetResult(ip, 6789, "CLOSE CONNECTION");
-                    interactor.interactionEnded();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

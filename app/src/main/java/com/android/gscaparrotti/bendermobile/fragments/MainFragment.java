@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,7 +17,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.gscaparrotti.bendermobile.R;
+import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
+
+import java.io.IOException;
+import java.util.MissingFormatArgumentException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -30,7 +35,6 @@ public class MainFragment extends Fragment {
 
     private GridView gv;
     private TableAdapter ta;
-    private Context context;
 
     private OnMainFragmentInteractionListener mListener;
 
@@ -52,7 +56,7 @@ public class MainFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         gv = (GridView) view.findViewById(R.id.tablesContainer);
-        ta = new TableAdapter(context);
+        ta = new TableAdapter(getActivity());
         gv.setAdapter(ta);
         new TableAmountDownloader().execute();
         view.findViewById(R.id.mainUpdate).setOnClickListener(new View.OnClickListener() {
@@ -81,7 +85,6 @@ public class MainFragment extends Fragment {
     @Override
     public void onAttach(Activity context) {
         super.onAttach(context);
-        this.context = context;
         if (context instanceof OnMainFragmentInteractionListener) {
             mListener = (OnMainFragmentInteractionListener) context;
         } else {
@@ -165,6 +168,17 @@ public class MainFragment extends Fragment {
     private class TableResetRequestUploader extends AsyncTask<Integer, Void, Boolean> {
 
         private String errorMessage;
+        private String ip;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (isAdded()) {
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            } else {
+                this.cancel(true);
+            }
+        }
 
         @Override
         protected Boolean doInBackground(final Integer... params) {
@@ -174,7 +188,6 @@ public class MainFragment extends Fragment {
             if (!MainFragment.this.isVisible()) {
                 return success;
             }
-            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
@@ -193,11 +206,11 @@ public class MainFragment extends Fragment {
         @Override
         protected void onPostExecute(final Boolean success) {
             super.onPostExecute(success);
-            if (MainFragment.this.isVisible() && getActivity() != null) {
+            if (isAdded()) {
                 if (success) {
-                    Toast.makeText(MainFragment.this.context, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.toastContext, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(MainFragment.this.context, errorMessage, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.toastContext, errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -205,12 +218,23 @@ public class MainFragment extends Fragment {
 
     private class TableAmountDownloader extends AsyncTask<Void, Void, Integer> {
 
+        private String ip;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (isAdded()) {
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            } else {
+                this.cancel(true);
+            }
+        }
+
         @Override
         protected Integer doInBackground(final Void... params) {
             final ServerInteractor serverInteractor = ServerInteractor.getInstance();
             final String command = "GET AMOUNT";
             Integer amount = 0;
-            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
             if (input instanceof Exception) {
                 amount = -1;
@@ -223,11 +247,15 @@ public class MainFragment extends Fragment {
         @Override
         protected void onPostExecute(final Integer integer) {
             super.onPostExecute(integer);
-            if (getActivity() != null) {
+            if (isAdded()) {
                 if (integer < 0) {
-                    Toast.makeText(MainFragment.this.context, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.toastContext, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
+                    if (isAdded() && MainFragment.this.isVisible()) {
+                        MainFragment.this.getView().setBackgroundColor(Color.rgb(204, 94, 61));
+                    }
                 } else {
-                    if (MainFragment.this.isVisible()) {
+                    if (isAdded() && MainFragment.this.isVisible()) {
+                        MainFragment.this.getView().setBackgroundColor(Color.TRANSPARENT);
                         MainFragment.this.tableAdded(integer);
                     }
                 }

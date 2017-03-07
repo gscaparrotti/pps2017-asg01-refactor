@@ -64,7 +64,7 @@ public class ServerInteractor {
         return datas;
     }
 
-    public void interactionEnded() throws IOException {
+    private void interactionEnded() throws IOException {
         if (socket != null) {
             socket.close();
         }

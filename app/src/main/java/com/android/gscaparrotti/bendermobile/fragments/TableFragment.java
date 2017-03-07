@@ -17,8 +17,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.gscaparrotti.bendermobile.R;
+import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -270,6 +272,17 @@ public class TableFragment extends Fragment {
     private class ServerOrdersUploader extends AsyncTask<Order, Void, Boolean> {
 
         private String errorMessage;
+        private String ip;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (isAdded()) {
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            } else {
+                this.cancel(true);
+            }
+        }
 
         @Override
         protected Boolean doInBackground(Order... params) {
@@ -278,7 +291,6 @@ public class TableFragment extends Fragment {
             if (!TableFragment.this.isVisible()) {
                 return result;
             }
-            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object resultFromServer = uploader.sendCommandAndGetResult(ip, 6789, params[0]);
             if (resultFromServer instanceof Exception) {
                 final Exception e = (Exception) resultFromServer;
@@ -302,12 +314,12 @@ public class TableFragment extends Fragment {
                 final List<Order> errors = new LinkedList<>();
                 errors.add(new Order(TableFragment.this.tableNumber, new Dish(errorMessage, 0), new Pair<>(0, 1)));
                 try {
-                    if (TableFragment.this.isVisible()) {
+                    if (isAdded() && TableFragment.this.isVisible()) {
                         aggiorna(errors);
                     }
                 } catch (Exception e) {
-                    if (!(e instanceof NullPointerException) && TableFragment.this.getActivity() != null) {
-                        Toast.makeText(getActivity(), "Chiamare Jack", Toast.LENGTH_LONG).show();
+                    if (!(e instanceof NullPointerException) && isAdded()) {
+                        Toast.makeText(MainActivity.toastContext, "Chiamare Jack", Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -316,9 +328,16 @@ public class TableFragment extends Fragment {
 
     private class ServerOrdersDownloader extends AsyncTask<Integer, Void, List<Order>> {
 
+        private String ip;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            if (isAdded()) {
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            } else {
+                this.cancel(true);
+            }
         }
 
         @Override
@@ -330,7 +349,6 @@ public class TableFragment extends Fragment {
             if (!TableFragment.this.isVisible()) {
                 return temp;
             }
-            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             if (tableNumber > 0) {
                 input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
             } else if (tableNumber == 0) {
@@ -370,12 +388,12 @@ public class TableFragment extends Fragment {
         protected void onPostExecute(List<Order> orders) {
             super.onPostExecute(orders);
             try {
-                if (TableFragment.this.isVisible()) {
+                if (isAdded() && TableFragment.this.isVisible()) {
                     aggiorna(orders);
                 }
             } catch (Exception e) {
-                if (!(e instanceof NullPointerException) && TableFragment.this.getActivity() != null) {
-                    Toast.makeText(getActivity(), "Chiamare Jack", Toast.LENGTH_LONG).show();
+                if (!(e instanceof NullPointerException) && isAdded()) {
+                    Toast.makeText(MainActivity.toastContext, "Chiamare Jack", Toast.LENGTH_LONG).show();
                 }
             }
         }

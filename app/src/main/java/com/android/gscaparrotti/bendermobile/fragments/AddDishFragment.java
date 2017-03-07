@@ -17,8 +17,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.gscaparrotti.bendermobile.R;
+import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -163,6 +165,18 @@ public class AddDishFragment extends Fragment {
 
     private class ServerMenuDownloader extends AsyncTask<Void, Void, List<IDish>> {
 
+        private String ip;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (isAdded()) {
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            } else {
+                this.cancel(true);
+            }
+        }
+
         @Override
         protected List<IDish> doInBackground(Void... params) {
             //qui effettuerò la chiamata al server
@@ -171,7 +185,6 @@ public class AddDishFragment extends Fragment {
             if (!AddDishFragment.this.isVisible()) {
                 return temp;
             }
-            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET MENU");
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
@@ -191,12 +204,12 @@ public class AddDishFragment extends Fragment {
         protected void onPostExecute(List<IDish> orders) {
             super.onPostExecute(orders);
             try {
-                if (AddDishFragment.this.isVisible()) {
+                if (isAdded() && AddDishFragment.this.isVisible()) {
                     AddDishFragment.this.aggiorna(orders);
                 }
             } catch (Exception e) {
-                if (getActivity() != null) {
-                    Toast.makeText(getActivity(), "Chiamare Jack", Toast.LENGTH_LONG).show();
+                if (isAdded()) {
+                    Toast.makeText(MainActivity.toastContext, "Chiamare Jack", Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -204,14 +217,26 @@ public class AddDishFragment extends Fragment {
 
     private class ServerDishUploader extends AsyncTask<Order, Void, String> {
 
+        private String output;
+        private String ip;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (isAdded()) {
+                output = getActivity().getString(R.string.orderAddSuccess);
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            } else {
+                this.cancel(true);
+            }
+        }
+
         @Override
         protected String doInBackground(Order... params) {
-            String output = getActivity().getString(R.string.orderAddSuccess);
             final ServerInteractor uploader = ServerInteractor.getInstance();
             if (!AddDishFragment.this.isVisible()) {
                 return "Il Task è morto";
             }
-            final String ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
             for (final Order order : params) {
                 Object result = uploader.sendCommandAndGetResult(ip, 6789, order);
                 if (result instanceof Exception) {
@@ -234,8 +259,8 @@ public class AddDishFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if (AddDishFragment.this.isVisible() && getActivity() != null) {
-                Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
+            if (isAdded()) {
+                Toast.makeText(MainActivity.toastContext, s, Toast.LENGTH_SHORT).show();
             }
         }
     }
