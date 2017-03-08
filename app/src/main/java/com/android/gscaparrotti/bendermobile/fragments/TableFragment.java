@@ -172,7 +172,7 @@ public class TableFragment extends Fragment {
     }
 
     private void updateAndStartTasks() {
-        new ServerOrdersDownloader().execute(tableNumber);
+        //new ServerOrdersDownloader().execute(tableNumber);
         if (timer == null) {
             timer = new Timer();
             timer.schedule(new TimerTask() {
