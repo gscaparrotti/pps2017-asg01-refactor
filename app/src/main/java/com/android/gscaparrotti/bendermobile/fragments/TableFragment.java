@@ -20,7 +20,6 @@ import com.android.gscaparrotti.bendermobile.R;
 import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -32,8 +31,8 @@ import java.util.TimerTask;
 import model.Dish;
 import model.IDish;
 import model.Order;
-import model.Pair;
 import model.OrderedDish;
+import model.Pair;
 
 public class TableFragment extends Fragment {
 
@@ -154,8 +153,10 @@ public class TableFragment extends Fragment {
         for (Order o : newList) {
             totalPrice += o.getAmounts().getX() * o.getDish().getPrice();
         }
-        TextView price = (TextView) getView().findViewById(R.id.totalPrice);
-        price.setText(getResources().getString(R.string.PrezzoTotale) + String.format("%.2f", totalPrice) + getResources().getString(R.string.valute));
+        if (getView() != null) {
+            TextView price = (TextView) getView().findViewById(R.id.totalPrice);
+            price.setText(getResources().getString(R.string.PrezzoTotale) + String.format("%.2f", totalPrice) + getResources().getString(R.string.valute));
+        }
     }
 
     @Override
@@ -309,6 +310,9 @@ public class TableFragment extends Fragment {
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             if (aBoolean) {
+                if (isAdded() && isVisible()) {
+                    Toast.makeText(MainActivity.toastContext, MainActivity.toastContext.getString(R.string.UpdateSuccess), Toast.LENGTH_SHORT).show();
+                }
                 new ServerOrdersDownloader().execute(tableNumber);
             } else {
                 final List<Order> errors = new LinkedList<>();
