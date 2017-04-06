@@ -58,7 +58,7 @@
         android:text="@string/tableTitleDetailText"
         android:id="@+id/tableTitleDetail"
         android:layout_below="@+id/tableTitle"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentStart="true" />
 
     <ListView
         android:layout_width="wrap_content"
@@ -77,5 +77,15 @@
         android:layout_above="@+id/addToTable"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />
+
+    <CheckBox
+        android:id="@+id/filterCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Attiva FIltro"
+        android:layout_below="@+id/tableTitle"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/dishesList"
+        android:visibility="invisible" />
 
 </RelativeLayout>

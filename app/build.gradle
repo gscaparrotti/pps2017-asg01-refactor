@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "23.0.2"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "com.android.gscaparrotti.bendermobile"
@@ -20,7 +20,7 @@ android {
 }
 
 dependencies {
-    compile 'com.github.gscaparrotti:BenderModel:a5c42e98dc'
+    compile 'com.github.gscaparrotti:BenderModel:016838acf2'
     //compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:21.0.3'

@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +22,7 @@ import com.android.gscaparrotti.bendermobile.R;
 import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -92,6 +95,21 @@ public class TableFragment extends Fragment {
                 }
             }
         });
+        CheckBox filter = (CheckBox) view.findViewById(R.id.filterCheckBox);
+        if (tableNumber == 0) {
+            filter.setVisibility(View.VISIBLE);
+        }
+        filter.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (TableFragment.this.isVisible() && list != null) {
+                    aggiorna(new ArrayList<>(list));
+                    if (!isChecked) {
+                        new ServerOrdersDownloader().execute();
+                    }
+                }
+            }
+        });
         if (tableNumber == 0) {
             addDish.setClickable(false);
         }
@@ -121,7 +139,16 @@ public class TableFragment extends Fragment {
     public void aggiorna(final List<Order> newList) {
         if (list != null) {
             list.clear();
-            list.addAll(newList);
+            final CheckBox filter = (CheckBox) getView().findViewById(R.id.filterCheckBox);
+            if (filter.isChecked()) {
+                for (final Order o : newList) {
+                    if (o.getDish().getFilterValue() != 0) {
+                        list.add(o);
+                    }
+                }
+            } else {
+                list.addAll(newList);
+            }
             if (tableNumber != 0) {
                 Collections.sort(list, new Comparator<Order>() {
                     @Override
@@ -167,14 +194,17 @@ public class TableFragment extends Fragment {
 
     @Override
     public void onStop() {
+        super.onStop();
         super.onDestroyView();
         Log.d("FRAGMENT STOP", "FRAGMENT STOP");
         stopTasks();
     }
 
     private void updateAndStartTasks() {
-        //new ServerOrdersDownloader().execute(tableNumber);
-        if (timer == null) {
+        //if timer is running, then just update, otherwise create timer and start it
+        if (timer != null) {
+            new ServerOrdersDownloader().execute();
+        } else {
             timer = new Timer();
             timer.schedule(new TimerTask() {
                 @Override
@@ -235,7 +265,7 @@ public class TableFragment extends Fragment {
                 public boolean onLongClick(View v) {
                     order.getAmounts().setY(order.getAmounts().getX());
                     if (tableNumber == 0) {
-                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().lastIndexOf(" - ")), order.getDish().getPrice());
+                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().lastIndexOf(" - ")), order.getDish().getPrice(), 0);
                         final Order newOrder = new Order(order.getTable(), dish, order.getAmounts());
                         new ServerOrdersUploader().execute(newOrder);
                     } else {
@@ -248,7 +278,7 @@ public class TableFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     if (tableNumber == 0) {
-                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().lastIndexOf(" - ")), order.getDish().getPrice());
+                        final IDish dish = new Dish(order.getDish().getName().substring(0, order.getDish().getName().lastIndexOf(" - ")), order.getDish().getPrice(), 0);
                         final Order newOrder = new Order(order.getTable(), dish, new Pair<>(-1, 1));
                         new ServerOrdersUploader().execute(newOrder);
                     } else {
@@ -316,7 +346,7 @@ public class TableFragment extends Fragment {
                 new ServerOrdersDownloader().execute(tableNumber);
             } else {
                 final List<Order> errors = new LinkedList<>();
-                errors.add(new Order(TableFragment.this.tableNumber, new Dish(errorMessage, 0), new Pair<>(0, 1)));
+                errors.add(new Order(TableFragment.this.tableNumber, new Dish(errorMessage, 0, 1), new Pair<>(0, 1)));
                 try {
                     if (isAdded() && TableFragment.this.isVisible()) {
                         aggiorna(errors);
@@ -364,7 +394,7 @@ public class TableFragment extends Fragment {
                 final Exception e = (Exception) input;
                 e.printStackTrace();
                 Log.e("exception", e.toString());
-                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0), new Pair<>(0, 1)));
+                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0, 1), new Pair<>(0, 1)));
                 stopTasks();
             } else if (input instanceof Map) {
                 //noinspection unchecked
@@ -378,10 +408,10 @@ public class TableFragment extends Fragment {
                 for (final Order o : datas) {
                     if (o.getDish() instanceof OrderedDish) {
                         final OrderedDish originalDish = (OrderedDish) o.getDish();
-                        final OrderedDish tempDish = new OrderedDish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice(), originalDish);
+                        final OrderedDish tempDish = new OrderedDish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice(), originalDish.getFilterValue(), originalDish);
                         temp.add(new Order(o.getTable(), tempDish, o.getAmounts()));
                     } else {
-                        temp.add(new Order(o.getTable(), new Dish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice()), o.getAmounts()));
+                        temp.add(new Order(o.getTable(), new Dish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice(), o.getDish().getFilterValue()), o.getAmounts()));
                     }
                 }
             }

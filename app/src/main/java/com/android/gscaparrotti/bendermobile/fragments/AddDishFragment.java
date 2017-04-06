@@ -91,7 +91,12 @@ public class AddDishFragment extends Fragment {
                 try {
                     String nameString = name.getText().toString();
                     Double priceDouble = Double.parseDouble(price.getText().toString());
-                    IDish newDish = new OrderedDish(nameString, priceDouble);
+                    IDish newDish;
+                    if (nameString.endsWith("*")) {
+                        newDish = new OrderedDish(nameString, priceDouble, 1);
+                    } else {
+                        newDish = new OrderedDish(nameString, priceDouble, 0);
+                    }
                     Order newOrder = new Order(tableNumber, newDish, new Pair<>(1, 0));
                     new ServerDishUploader().execute(newOrder);
                 } catch (NumberFormatException e) {
@@ -190,7 +195,7 @@ public class AddDishFragment extends Fragment {
                 final Exception e = (Exception) input;
                 e.printStackTrace();
                 Log.e("exception", e.toString());
-                temp.add(new Dish(e.toString(), 0));
+                temp.add(new Dish(e.toString(), 0, 1));
             } else if (input instanceof IMenu) {
                 final IMenu datas = (IMenu) input;
                 for(final IDish d : datas.getDishesArray()) {
