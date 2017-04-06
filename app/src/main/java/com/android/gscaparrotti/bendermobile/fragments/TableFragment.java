@@ -105,7 +105,7 @@ public class TableFragment extends Fragment {
                 if (TableFragment.this.isVisible() && list != null) {
                     aggiorna(new ArrayList<>(list));
                     if (!isChecked) {
-                        new ServerOrdersDownloader().execute();
+                        new ServerOrdersDownloader().execute(tableNumber);
                     }
                 }
             }
@@ -203,7 +203,7 @@ public class TableFragment extends Fragment {
     private void updateAndStartTasks() {
         //if timer is running, then just update, otherwise create timer and start it
         if (timer != null) {
-            new ServerOrdersDownloader().execute();
+            new ServerOrdersDownloader().execute(tableNumber);
         } else {
             timer = new Timer();
             timer.schedule(new TimerTask() {
