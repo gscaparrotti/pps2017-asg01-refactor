@@ -75,6 +75,8 @@ public class TableFragment extends Fragment {
             text.setText(text.getText() + " " + Integer.toString(tableNumber));
         } else if (tableNumber == 0) {
             text.setText(getString(R.string.ViewAllPendingOrders));
+            Button add = (Button) view.findViewById(R.id.addToTable);
+            add.setEnabled(false);
         }
         ListView listView = (ListView) view.findViewById(R.id.dishesList);
         adapter = new DishAdapter(getActivity(), list);
