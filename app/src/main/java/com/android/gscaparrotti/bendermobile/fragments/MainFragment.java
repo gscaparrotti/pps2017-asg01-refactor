@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +20,10 @@ import android.widget.Toast;
 import com.android.gscaparrotti.bendermobile.R;
 import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
+import com.google.common.collect.ImmutableMap;
 
-import java.io.IOException;
-import java.util.MissingFormatArgumentException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -74,10 +76,10 @@ public class MainFragment extends Fragment {
         return view;
     }
 
-    public void tableAdded(final int tableNumber) {
-        int current = ta.getCount();
-        for (int i = 0; i < tableNumber - current; i++) {
-            ta.addElement(i + 1);
+    public void tableAdded(final int tableNumber, final Map<Integer, String> names) {
+        ta.reset();
+        for (int i = 0; i < tableNumber; i++) {
+            ta.addElement(i + 1, names.get(i + 1));
         }
         ta.notifyDataSetChanged();
     }
@@ -106,6 +108,7 @@ public class MainFragment extends Fragment {
     private class TableAdapter extends BaseAdapter {
 
         private int n = 0;
+        private Map<Integer, String> names = new HashMap<>();
         private LayoutInflater inflater;
 
         TableAdapter(Context context) {
@@ -117,8 +120,14 @@ public class MainFragment extends Fragment {
             return n;
         }
 
-        public void addElement(final Integer i) {
+        public void addElement(final Integer i, final String name) {
             n++;
+            names.put(i, name);
+        }
+
+        public void reset() {
+            n = 0;
+            names.clear();
         }
 
         @Override
@@ -138,7 +147,7 @@ public class MainFragment extends Fragment {
             }
             final Integer table = getItem(position);
             final TextView tableView = (TextView) convertView.findViewById(R.id.table);
-            tableView.setText(getString(R.string.itemTableText) + table);
+            tableView.setText(getString(R.string.itemTableText) + table + formattedName(names.get(table)));
             convertView.setLongClickable(true);
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -156,12 +165,17 @@ public class MainFragment extends Fragment {
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                     new TableResetRequestUploader().execute(table);
+                                    new TableAmountDownloader().execute();
                                 }})
                             .setNegativeButton(android.R.string.no, null).show();
                     return true;
                 }
             });
             return convertView;
+        }
+
+        private String formattedName(final String name) {
+            return !(name == null) ? " - " + name : "";
         }
     }
 
@@ -216,7 +230,7 @@ public class MainFragment extends Fragment {
         }
     }
 
-    private class TableAmountDownloader extends AsyncTask<Void, Void, Integer> {
+    private class TableAmountDownloader extends AsyncTask<Void, Void, Pair<Integer, Map<Integer, String>>> {
 
         private String ip;
 
@@ -231,24 +245,30 @@ public class MainFragment extends Fragment {
         }
 
         @Override
-        protected Integer doInBackground(final Void... params) {
+        protected Pair<Integer, Map<Integer, String>> doInBackground(final Void... params) {
             final ServerInteractor serverInteractor = ServerInteractor.getInstance();
-            final String command = "GET AMOUNT";
             Integer amount = 0;
-            final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
-            if (input instanceof Exception) {
+            Map<Integer, String> names = ImmutableMap.of();
+            final Object receivedAmount = serverInteractor.sendCommandAndGetResult(ip, 6789, "GET AMOUNT");
+            if (receivedAmount instanceof Exception) {
                 amount = -1;
-            } else if (input instanceof Integer){
-                amount = (Integer) input;
+            } else if (receivedAmount instanceof Integer){
+                amount = (Integer) receivedAmount;
+                final Object receivedNames = serverInteractor.sendCommandAndGetResult(ip, 6789, "GET NAMES");
+                if (receivedNames instanceof Exception) {
+                    amount = -1;
+                } else if (receivedNames instanceof Map) {
+                    names = (Map<Integer, String>) receivedNames;
+                }
             }
-            return amount;
+            return new Pair<>(amount, names);
         }
 
         @Override
-        protected void onPostExecute(final Integer integer) {
-            super.onPostExecute(integer);
+        protected void onPostExecute(final Pair<Integer, Map<Integer, String>> pair) {
+            super.onPostExecute(pair);
             if (isAdded()) {
-                if (integer < 0) {
+                if (pair.first < 0) {
                     Toast.makeText(MainActivity.toastContext, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
                     if (isAdded() && MainFragment.this.isVisible()) {
                         MainFragment.this.getView().setBackgroundColor(Color.rgb(204, 94, 61));
@@ -256,7 +276,7 @@ public class MainFragment extends Fragment {
                 } else {
                     if (isAdded() && MainFragment.this.isVisible()) {
                         MainFragment.this.getView().setBackgroundColor(Color.TRANSPARENT);
-                        MainFragment.this.tableAdded(integer);
+                        MainFragment.this.tableAdded(pair.first, pair.second);
                     }
                 }
             }

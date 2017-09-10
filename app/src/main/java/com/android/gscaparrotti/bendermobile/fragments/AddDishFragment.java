@@ -82,10 +82,10 @@ public class AddDishFragment extends Fragment {
         ListView listView = (ListView) view.findViewById(R.id.addDishListView);
         adapter = new AddDishAdapter(getActivity(), list);
         listView.setAdapter(adapter);
-        Button button = (Button) view.findViewById(R.id.buttonAggiungi);
+        final Button manualOrderButton = (Button) view.findViewById(R.id.buttonAggiungi);
         final EditText price = (EditText) view.findViewById(R.id.editText_prezzo);
         final EditText name = (EditText) view.findViewById(R.id.editText_nome);
-        button.setOnClickListener(new View.OnClickListener() {
+        manualOrderButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
@@ -104,6 +104,14 @@ public class AddDishFragment extends Fragment {
                         Toast.makeText(AddDishFragment.this.getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }
+            }
+        });
+        final Button newNameButton = (Button) view.findViewById(R.id.tableNameButton);
+        final EditText newNameEditText = (EditText) view.findViewById(R.id.tableNameEditText);
+        newNameButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ServerNameUploader().execute(newNameEditText.getText().toString());
             }
         });
         new ServerMenuDownloader().execute();
@@ -253,6 +261,61 @@ public class AddDishFragment extends Fragment {
                 } else if (result instanceof String) {
                     final String stringResult = (String) result;
                     if (!result.equals("ORDER ADDED CORRECTLY")) {
+                        output = stringResult;
+                        break;
+                    }
+                }
+            }
+            return output;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (isAdded()) {
+                Toast.makeText(MainActivity.toastContext, s, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private class ServerNameUploader extends AsyncTask<String, Void, String> {
+
+        private String output;
+        private String ip;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (isAdded()) {
+                output = getActivity().getString(R.string.NameUpdateSuccess);
+                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
+            } else {
+                this.cancel(true);
+            }
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            final ServerInteractor uploader = ServerInteractor.getInstance();
+            if (!AddDishFragment.this.isVisible()) {
+                return "Il Task è morto";
+            }
+            for (final String name : params) {
+                Object result;
+                if (name.length() > 0) {
+                    result = uploader.sendCommandAndGetResult(ip, 6789, "SET NAME " + tableNumber + " " + name);
+                } else {
+                    result = uploader.sendCommandAndGetResult(ip, 6789, "REMOVE NAME " + tableNumber);
+                }
+                if (result instanceof Exception) {
+                    final Exception e = (Exception) result;
+                    e.printStackTrace();
+                    Log.e("exception", e.toString());
+                    output = e.toString();
+                    break;
+                } else if (result instanceof String) {
+                    final String stringResult = (String) result;
+                    if (!result.equals("NAME SET CORRECTLY")) {
                         output = stringResult;
                         break;
                     }

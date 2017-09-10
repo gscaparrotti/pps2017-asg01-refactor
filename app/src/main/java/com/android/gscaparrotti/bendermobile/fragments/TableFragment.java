@@ -188,6 +188,13 @@ public class TableFragment extends Fragment {
         }
     }
 
+    public void aggiornaNome (final String name) {
+        if (getView() != null && name.length() > 0) {
+            TextView nameView = (TextView) getView().findViewById(R.id.tableTitle);
+            nameView.setText(getString(R.string.tableTitle) + " " + Integer.toString(tableNumber) + " - " + name);
+        }
+    }
+
     @Override
     public void onDetach() {
         super.onDetach();
@@ -362,7 +369,7 @@ public class TableFragment extends Fragment {
         }
     }
 
-    private class ServerOrdersDownloader extends AsyncTask<Integer, Void, List<Order>> {
+    private class ServerOrdersDownloader extends AsyncTask<Integer, Void, Pair<List<Order>, String>> {
 
         private String ip;
 
@@ -377,13 +384,14 @@ public class TableFragment extends Fragment {
         }
 
         @Override
-        protected List<Order> doInBackground(Integer... params) {
+        protected Pair<List<Order>, String> doInBackground(Integer... params) {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
+            String tableName = "";
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
             Object input = null;
             if (!TableFragment.this.isVisible()) {
-                return temp;
+                return new Pair<>(temp, tableName);
             }
             if (tableNumber > 0) {
                 input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
@@ -401,6 +409,15 @@ public class TableFragment extends Fragment {
             } else if (input instanceof Map) {
                 //noinspection unchecked
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
+                final Object tableNameInput = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET NAMES");
+                if (tableNameInput instanceof Map) {
+                    tableName = (String) ((Map) tableNameInput).get(TableFragment.this.tableNumber);
+                } else if (tableNameInput instanceof Exception) {
+                    final Exception e = (Exception) tableNameInput;
+                    Log.e("exception", e.toString());
+                    temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0, 1), new Pair<>(0, 1)));
+                    stopTasks();
+                }
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
                 }
@@ -417,15 +434,16 @@ public class TableFragment extends Fragment {
                     }
                 }
             }
-            return temp;
+            return new Pair<>(temp, tableName);
         }
 
         @Override
-        protected void onPostExecute(List<Order> orders) {
+        protected void onPostExecute(Pair<List<Order>, String> orders) {
             super.onPostExecute(orders);
             try {
                 if (isAdded() && TableFragment.this.isVisible()) {
-                    aggiorna(orders);
+                    aggiorna(orders.getX());
+                    aggiornaNome(orders.getY());
                 }
             } catch (Exception e) {
                 if (!(e instanceof NullPointerException) && isAdded()) {
