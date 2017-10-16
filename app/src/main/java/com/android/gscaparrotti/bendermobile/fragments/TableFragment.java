@@ -25,6 +25,7 @@ import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -387,6 +388,7 @@ public class TableFragment extends Fragment {
         protected Pair<List<Order>, String> doInBackground(Integer... params) {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
+            Map<Integer, String> names = new HashMap<>();
             String tableName = "";
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
             Object input = null;
@@ -398,7 +400,18 @@ public class TableFragment extends Fragment {
             } else if (tableNumber == 0) {
                 input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET PENDING ORDERS");
             } else {
+                //noinspection ThrowableInstanceNeverThrown
                 input = new Exception("Invalid Table Number");
+            }
+            final Object tableNameInput = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET NAMES");
+            if (tableNameInput instanceof Map) {
+                //noinspection unchecked
+                names = (Map<Integer, String>) tableNameInput;
+            } else if (tableNameInput instanceof Exception) {
+                final Exception e = (Exception) tableNameInput;
+                Log.e("exception", e.toString());
+                temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0, 1), new Pair<>(0, 1)));
+                stopTasks();
             }
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
@@ -409,28 +422,25 @@ public class TableFragment extends Fragment {
             } else if (input instanceof Map) {
                 //noinspection unchecked
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
-                final Object tableNameInput = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET NAMES");
-                if (tableNameInput instanceof Map) {
-                    tableName = (String) ((Map) tableNameInput).get(TableFragment.this.tableNumber);
-                } else if (tableNameInput instanceof Exception) {
-                    final Exception e = (Exception) tableNameInput;
-                    Log.e("exception", e.toString());
-                    temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0, 1), new Pair<>(0, 1)));
-                    stopTasks();
-                }
                 for(final Map.Entry<IDish, Pair<Integer, Integer>> entry : datas.entrySet()) {
                     temp.add(new Order(TableFragment.this.tableNumber, entry.getKey(), entry.getValue()));
                 }
+                tableName = names.get(TableFragment.this.tableNumber);
             } else if (input instanceof List) {
                 //noinspection unchecked
                 final List<Order> datas = (List<Order>) input;
                 for (final Order o : datas) {
+                    final StringBuilder strbldr = new StringBuilder(o.getDish().getName());
+                    strbldr.append(" - ").append(o.getTable());
+                    if (names.containsKey(o.getTable())) {
+                        strbldr.append(" (").append(names.get(o.getTable())).append(")");
+                    }
                     if (o.getDish() instanceof OrderedDish) {
                         final OrderedDish originalDish = (OrderedDish) o.getDish();
-                        final OrderedDish tempDish = new OrderedDish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice(), originalDish.getFilterValue(), originalDish);
+                        final OrderedDish tempDish = new OrderedDish(strbldr.toString(), o.getDish().getPrice(), originalDish.getFilterValue(), originalDish);
                         temp.add(new Order(o.getTable(), tempDish, o.getAmounts()));
                     } else {
-                        temp.add(new Order(o.getTable(), new Dish(o.getDish().getName() + " - " + o.getTable(), o.getDish().getPrice(), o.getDish().getFilterValue()), o.getAmounts()));
+                        temp.add(new Order(o.getTable(), new Dish(strbldr.toString(), o.getDish().getPrice(), o.getDish().getFilterValue()), o.getAmounts()));
                     }
                 }
             }
