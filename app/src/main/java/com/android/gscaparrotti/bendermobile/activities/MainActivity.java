@@ -21,6 +21,17 @@ import com.android.gscaparrotti.bendermobile.fragments.TableFragment;
 
 public class MainActivity extends Activity implements TableFragment.OnTableFragmentInteractionListener, MainFragment.OnMainFragmentInteractionListener, AddDishFragment.OnAddDishFragmentInteractionListener {
 
+    /*
+        Il warning è un falso positivo: se toastContext non venisse riassegnato
+        nel metodo onCreate e contenesse, ad esempio, una Activity, che tendenzialmente
+        ha un ciclo vitale più corto di quello dell'applicazione, allora ci sarebbe
+        un riferimento statico ad un oggetto che verrebbe altrimenti eliminato dal
+        garbage collector, ma in questo caso:
+        1) il riferimento viene inizializzato con l'applicationContext, che è sempre
+        lo stesso a prescindere dalle varie Activity che si susseguono
+        2) il riferimento, se anche fosse all'Activity, sarebbe comunque a quella corrente
+        e non a quelle da buttare via, perchè viene aggiornato nel metodo onCreate
+     */
     public static Context toastContext;
 
     @Override

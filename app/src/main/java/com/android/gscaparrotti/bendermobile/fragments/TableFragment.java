@@ -219,7 +219,14 @@ public class TableFragment extends Fragment {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    new ServerOrdersDownloader().execute(tableNumber);
+                    if(isAdded()) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                new ServerOrdersDownloader().execute(tableNumber);
+                            }
+                        });
+                    }
                 }
             }, 0, 5000);
         }
