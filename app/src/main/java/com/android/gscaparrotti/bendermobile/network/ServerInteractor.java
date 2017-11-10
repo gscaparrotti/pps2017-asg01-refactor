@@ -30,8 +30,8 @@ public class ServerInteractor {
         }
         if (!socket.isConnected()) {
             try {
-                socket.connect(new InetSocketAddress(address, port), 7000);
-                socket.setSoTimeout(7000);
+                socket.connect(new InetSocketAddress(address, port), 5000);
+                socket.setSoTimeout(5000);
             } catch (IOException e) {
                 try {
                     datas = e;
