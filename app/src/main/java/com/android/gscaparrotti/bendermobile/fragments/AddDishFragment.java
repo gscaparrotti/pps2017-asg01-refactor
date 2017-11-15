@@ -195,9 +195,6 @@ public class AddDishFragment extends Fragment {
             //qui effettuerò la chiamata al server
             final List<IDish> temp = new LinkedList<>();
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
-            if (!AddDishFragment.this.isVisible()) {
-                return temp;
-            }
             final Object input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET MENU");
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
@@ -247,9 +244,6 @@ public class AddDishFragment extends Fragment {
         @Override
         protected String doInBackground(Order... params) {
             final ServerInteractor uploader = ServerInteractor.getInstance();
-            if (!AddDishFragment.this.isVisible()) {
-                return "Il Task è morto";
-            }
             for (final Order order : params) {
                 Object result = uploader.sendCommandAndGetResult(ip, 6789, order);
                 if (result instanceof Exception) {
@@ -297,9 +291,6 @@ public class AddDishFragment extends Fragment {
         @Override
         protected String doInBackground(String... params) {
             final ServerInteractor uploader = ServerInteractor.getInstance();
-            if (!AddDishFragment.this.isVisible()) {
-                return "Il Task è morto";
-            }
             for (final String name : params) {
                 Object result;
                 if (name.length() > 0) {
