@@ -7,6 +7,8 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +35,15 @@ public class MainActivity extends Activity implements TableFragment.OnTableFragm
         e non a quelle da buttare via, perchè viene aggiornato nel metodo onCreate
      */
     public static Context toastContext;
+    public static Handler UIHandler;
+
+    static {
+        UIHandler = new Handler(Looper.getMainLooper());
+    }
+
+    public static void runOnUI(Runnable runnable) {
+        UIHandler.post(runnable);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -210,7 +210,7 @@ public class TableFragment extends Fragment {
         stopTasks();
     }
 
-    private void updateAndStartTasks() {
+    private synchronized void updateAndStartTasks() {
         //if timer is running, then just update, otherwise create timer and start it
         if (timer != null) {
             new ServerOrdersDownloader().execute(tableNumber);
@@ -219,20 +219,18 @@ public class TableFragment extends Fragment {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    if(isAdded()) {
-                        getActivity().runOnUiThread(new Runnable() {
+                        MainActivity.runOnUI(new Runnable() {
                             @Override
                             public void run() {
                                 new ServerOrdersDownloader().execute(tableNumber);
                             }
                         });
-                    }
                 }
             }, 0, 6000);
         }
     }
 
-    private void stopTasks() {
+    private synchronized void stopTasks() {
         if (timer != null) {
             timer.cancel();
             timer.purge();
