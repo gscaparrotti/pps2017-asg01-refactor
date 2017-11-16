@@ -228,7 +228,7 @@ public class TableFragment extends Fragment {
                         });
                     }
                 }
-            }, 0, 5000);
+            }, 0, 6000);
         }
     }
 
@@ -336,9 +336,6 @@ public class TableFragment extends Fragment {
         protected Boolean doInBackground(Order... params) {
             final ServerInteractor uploader = ServerInteractor.getInstance();
             boolean result = false;
-            if (!TableFragment.this.isVisible()) {
-                return result;
-            }
             final Object resultFromServer = uploader.sendCommandAndGetResult(ip, 6789, params[0]);
             if (resultFromServer instanceof Exception) {
                 final Exception e = (Exception) resultFromServer;
@@ -357,7 +354,7 @@ public class TableFragment extends Fragment {
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             if (aBoolean) {
-                if (isAdded() && isVisible()) {
+                if (isVisible()) {
                     Toast.makeText(MainActivity.toastContext, MainActivity.toastContext.getString(R.string.UpdateSuccess), Toast.LENGTH_SHORT).show();
                 }
                 new ServerOrdersDownloader().execute(tableNumber);
@@ -365,7 +362,7 @@ public class TableFragment extends Fragment {
                 final List<Order> errors = new LinkedList<>();
                 errors.add(new Order(TableFragment.this.tableNumber, new Dish(errorMessage, 0, 1), new Pair<>(0, 1)));
                 try {
-                    if (isAdded() && TableFragment.this.isVisible()) {
+                    if (isVisible()) {
                         aggiorna(errors);
                     }
                 } catch (Exception e) {
@@ -396,12 +393,9 @@ public class TableFragment extends Fragment {
             //qui effettuerò la chiamata al server
             final List<Order> temp = new LinkedList<>();
             Map<Integer, String> names = new HashMap<>();
-            String tableName = "";
+            String tableName = null;
             final ServerInteractor dataDownloader = ServerInteractor.getInstance();
             Object input = null;
-            if (!TableFragment.this.isVisible()) {
-                return new Pair<>(temp, tableName);
-            }
             if (tableNumber > 0) {
                 input = dataDownloader.sendCommandAndGetResult(ip, 6789, "GET TABLE " + params[0]);
             } else if (tableNumber == 0) {
@@ -419,6 +413,7 @@ public class TableFragment extends Fragment {
                 Log.e("exception", e.toString());
                 temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0, 1), new Pair<>(0, 1)));
                 stopTasks();
+                return new Pair<>(temp, tableName);
             }
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
@@ -426,6 +421,7 @@ public class TableFragment extends Fragment {
                 Log.e("exception", e.toString());
                 temp.add(new Order(TableFragment.this.tableNumber, new Dish(e.toString(), 0, 1), new Pair<>(0, 1)));
                 stopTasks();
+                return new Pair<>(temp, tableName);
             } else if (input instanceof Map) {
                 //noinspection unchecked
                 final Map<IDish, Pair<Integer, Integer>> datas = (Map<IDish, Pair<Integer, Integer>>) input;
@@ -458,9 +454,11 @@ public class TableFragment extends Fragment {
         protected void onPostExecute(Pair<List<Order>, String> orders) {
             super.onPostExecute(orders);
             try {
-                if (isAdded() && TableFragment.this.isVisible()) {
+                if (isVisible()) {
                     aggiorna(orders.getX());
-                    aggiornaNome(orders.getY());
+                    if (orders.getY() != null) {
+                        aggiornaNome(orders.getY());
+                    }
                 }
             } catch (Exception e) {
                 if (!(e instanceof NullPointerException) && isAdded()) {

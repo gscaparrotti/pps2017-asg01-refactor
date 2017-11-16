@@ -1,10 +1,10 @@
 package com.android.gscaparrotti.bendermobile.fragments;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,7 +20,6 @@ import com.android.gscaparrotti.bendermobile.R;
 import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,8 +27,8 @@ import model.Dish;
 import model.IDish;
 import model.IMenu;
 import model.Order;
-import model.Pair;
 import model.OrderedDish;
+import model.Pair;
 
 
 /**
@@ -214,7 +213,7 @@ public class AddDishFragment extends Fragment {
         protected void onPostExecute(List<IDish> orders) {
             super.onPostExecute(orders);
             try {
-                if (isAdded() && AddDishFragment.this.isVisible()) {
+                if (isVisible()) {
                     AddDishFragment.this.aggiorna(orders);
                 }
             } catch (Exception e) {

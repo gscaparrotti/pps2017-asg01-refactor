@@ -199,9 +199,6 @@ public class MainFragment extends Fragment {
             final ServerInteractor serverInteractor = ServerInteractor.getInstance();
             final String command = "RESET TABLE " + params[0];
             boolean success = false;
-            if (!MainFragment.this.isVisible()) {
-                return success;
-            }
             final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
             if (input instanceof Exception) {
                 final Exception e = (Exception) input;
@@ -270,11 +267,11 @@ public class MainFragment extends Fragment {
             if (isAdded()) {
                 if (pair.first < 0) {
                     Toast.makeText(MainActivity.toastContext, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
-                    if (isAdded() && MainFragment.this.isVisible()) {
+                    if (isVisible()) {
                         MainFragment.this.getView().setBackgroundColor(Color.rgb(204, 94, 61));
                     }
                 } else {
-                    if (isAdded() && MainFragment.this.isVisible()) {
+                    if (isVisible()) {
                         MainFragment.this.getView().setBackgroundColor(Color.TRANSPARENT);
                         MainFragment.this.tableAdded(pair.first, pair.second);
                     }
