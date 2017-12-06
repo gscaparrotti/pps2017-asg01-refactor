@@ -190,9 +190,10 @@ public class TableFragment extends Fragment {
     }
 
     public void aggiornaNome (final String name) {
-        if (getView() != null && name.length() > 0) {
+        if (getView() != null) {
             TextView nameView = (TextView) getView().findViewById(R.id.tableTitle);
-            nameView.setText(getString(R.string.tableTitle) + " " + Integer.toString(tableNumber) + " - " + name);
+            String newName = name.length() > 0 ? (" - " + name) : "";
+            nameView.setText(getString(R.string.tableTitle) + " " + Integer.toString(tableNumber) + newName);
         }
     }
 
@@ -454,9 +455,7 @@ public class TableFragment extends Fragment {
             try {
                 if (isVisible()) {
                     aggiorna(orders.getX());
-                    if (orders.getY() != null) {
-                        aggiornaNome(orders.getY());
-                    }
+                    aggiornaNome(orders.getY() != null ? orders.getY() : "");
                 }
             } catch (Exception e) {
                 if (!(e instanceof NullPointerException) && isAdded()) {
