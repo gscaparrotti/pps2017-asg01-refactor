@@ -92,9 +92,9 @@ public class AddDishFragment extends Fragment {
                     Double priceDouble = Double.parseDouble(price.getText().toString());
                     IDish newDish;
                     if (nameString.endsWith("*")) {
-                        newDish = new OrderedDish(nameString, priceDouble, 1);
+                        newDish = new OrderedDish(nameString, priceDouble, OrderedDish.Moments.ZERO, 1);
                     } else {
-                        newDish = new OrderedDish(nameString, priceDouble, 0);
+                        newDish = new OrderedDish(nameString, priceDouble, OrderedDish.Moments.ZERO, 0);
                     }
                     Order newOrder = new Order(tableNumber, newDish, new Pair<>(1, 0));
                     new ServerDishUploader().execute(newOrder);
@@ -167,7 +167,7 @@ public class AddDishFragment extends Fragment {
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Order order = new Order(tableNumber, new OrderedDish(dish), new Pair<>(1, 0));
+                    Order order = new Order(tableNumber, new OrderedDish(dish, OrderedDish.Moments.ZERO), new Pair<>(1, 0));
                     new ServerDishUploader().execute(order);
                 }
             });
