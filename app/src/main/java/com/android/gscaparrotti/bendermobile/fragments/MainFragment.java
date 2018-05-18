@@ -36,8 +36,9 @@ import java.util.Map;
  */
 public class MainFragment extends Fragment {
 
-    private GridView gv;
     private TableAdapter ta;
+    private int tablesCount = 0;
+    private Map<Integer, String> names = new HashMap<>();
 
     private OnMainFragmentInteractionListener mListener;
 
@@ -58,7 +59,7 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
-        gv = (GridView) view.findViewById(R.id.tablesContainer);
+        GridView gv = (GridView) view.findViewById(R.id.tablesContainer);
         ta = new TableAdapter(getActivity());
         gv.setAdapter(ta);
         new TableAmountDownloader(MainFragment.this).execute();
@@ -75,14 +76,6 @@ public class MainFragment extends Fragment {
             }
         });
         return view;
-    }
-
-    public void tableAdded(final int tableNumber, final Map<Integer, String> names) {
-        ta.reset();
-        for (int i = 0; i < tableNumber; i++) {
-            ta.addElement(i + 1, names.get(i + 1));
-        }
-        ta.notifyDataSetChanged();
     }
 
     @Override
@@ -102,14 +95,31 @@ public class MainFragment extends Fragment {
         mListener = null;
     }
 
+
+    private void tableAdded(final int tableNumber, final Map<Integer, String> names) {
+        reset();
+        for (int i = 0; i < tableNumber; i++) {
+            addElement(i + 1, names.get(i + 1));
+        }
+        ta.notifyDataSetChanged();
+    }
+
+    private void addElement(final Integer i, final String name) {
+        tablesCount++;
+        names.put(i, name);
+    }
+
+    private void reset() {
+        tablesCount = 0;
+        names.clear();
+    }
+
     public interface OnMainFragmentInteractionListener {
         void onTablePressedEventFired(int tableNumber);
     }
 
     private class TableAdapter extends BaseAdapter {
 
-        private int n = 0;
-        private Map<Integer, String> names = new HashMap<>();
         private LayoutInflater inflater;
 
         TableAdapter(Context context) {
@@ -118,17 +128,7 @@ public class MainFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return n;
-        }
-
-        public void addElement(final Integer i, final String name) {
-            n++;
-            names.put(i, name);
-        }
-
-        public void reset() {
-            n = 0;
-            names.clear();
+            return tablesCount;
         }
 
         @Override
@@ -198,12 +198,12 @@ public class MainFragment extends Fragment {
 
         @Override
         protected void innerOnSuccessfulPostExecute(BenderAsyncTaskResult<Empty> result) {
-            Toast.makeText(MainActivity.commonContext, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.commonContext, getString(R.string.ResetSuccess), Toast.LENGTH_SHORT).show();
         }
 
         @Override
         protected void innerOnUnsuccessfulPostExecute(BenderAsyncTaskResult<Empty> error) {
-            Toast.makeText(MainActivity.commonContext, error.getError().getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.commonContext, error.getError().getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -219,6 +219,7 @@ public class MainFragment extends Fragment {
             final Object receivedNames = new ServerInteractor().sendCommandAndGetResult(ip, 6789, "GET NAMES");
             if (receivedAmount instanceof Integer && receivedNames instanceof Map) {
                 final Integer amount = (Integer) receivedAmount;
+                @SuppressWarnings("unchecked")
                 final Map<Integer, String> names = (Map<Integer, String>) receivedNames;
                 return new BenderAsyncTaskResult<>(new Pair<>(amount, names));
             }
@@ -234,7 +235,7 @@ public class MainFragment extends Fragment {
         @Override
         protected void innerOnUnsuccessfulPostExecute(BenderAsyncTaskResult<Pair<Integer, Map<Integer, String>>> error) {
             MainFragment.this.getView().setBackgroundColor(Color.rgb(204, 94, 61));
-            Toast.makeText(MainActivity.commonContext, error.getError().getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.commonContext, error.getError().getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }
