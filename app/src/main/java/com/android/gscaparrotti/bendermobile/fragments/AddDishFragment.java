@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -135,7 +136,7 @@ public class AddDishFragment extends Fragment {
         mListener = null;
     }
 
-    public void aggiorna(final List<IDish> newList) {
+    private void update(final List<IDish> newList) {
         if (list != null) {
             list.clear();
             list.addAll(newList);
@@ -151,13 +152,14 @@ public class AddDishFragment extends Fragment {
 
         private LayoutInflater inflater;
 
-        public AddDishAdapter(Context context, List<IDish> persone) {
+        AddDishAdapter(Context context, List<IDish> persone) {
             super(context, 0, persone);
             inflater = LayoutInflater.from(context);
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        @NonNull
+        public View getView(int position, View convertView,@NonNull ViewGroup parent) {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.item_dish_to_add, parent, false);
             }
@@ -193,7 +195,7 @@ public class AddDishFragment extends Fragment {
 
         @Override
         protected void innerOnSuccessfulPostExecute(BenderAsyncTaskResult<List<IDish>> result) {
-            AddDishFragment.this.aggiorna(result.getResult());
+            AddDishFragment.this.update(result.getResult());
         }
 
         @Override
@@ -204,7 +206,7 @@ public class AddDishFragment extends Fragment {
 
     private class ServerDishUploader extends FragmentNetworkingBenderAsyncTask<Order, Empty> {
 
-        public ServerDishUploader(Fragment fragment) {
+        ServerDishUploader(Fragment fragment) {
             super(fragment);
         }
 

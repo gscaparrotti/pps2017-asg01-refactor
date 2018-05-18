@@ -5,6 +5,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -79,6 +80,8 @@ public class TableFragment extends Fragment {
             text.setText(getString(R.string.ViewAllPendingOrders));
             Button add = (Button) view.findViewById(R.id.addToTable);
             add.setEnabled(false);
+            TextView price = (TextView) view.findViewById(R.id.totalPrice);
+            price.setVisibility(View.INVISIBLE);
         }
         ListView listView = (ListView) view.findViewById(R.id.dishesList);
         adapter = new DishAdapter(getActivity(), list);
@@ -107,7 +110,7 @@ public class TableFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (TableFragment.this.isVisible() && list != null) {
-                    aggiorna(new ArrayList<>(list));
+                    updateOrders(new ArrayList<>(list));
                     if (!isChecked) {
                         new ServerOrdersDownloader(TableFragment.this).execute(tableNumber);
                     }
@@ -138,9 +141,21 @@ public class TableFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        super.onDestroyView();
+        Log.d("FRAGMENT STOP", "FRAGMENT STOP");
+        stopTasks();
+    }
 
-    public void aggiorna(final List<Order> newList) {
+    private void updateOrders(final List<Order> newList) {
         if (list != null) {
             list.clear();
             final CheckBox filter = (CheckBox) getView().findViewById(R.id.filterCheckBox);
@@ -190,26 +205,12 @@ public class TableFragment extends Fragment {
         }
     }
 
-    public void aggiornaNome (final String name) {
-        if (getView() != null) {
+    private void updateName(final String name) {
+        if (getView() != null && tableNumber > 0) {
             TextView nameView = (TextView) getView().findViewById(R.id.tableTitle);
             String newName = name.length() > 0 ? (" - " + name) : "";
             nameView.setText(getString(R.string.tableTitle) + " " + Integer.toString(tableNumber) + newName);
         }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        super.onDestroyView();
-        Log.d("FRAGMENT STOP", "FRAGMENT STOP");
-        stopTasks();
     }
 
     private synchronized void updateAndStartTasks() {
@@ -258,13 +259,14 @@ public class TableFragment extends Fragment {
 
         private LayoutInflater inflater;
 
-        public DishAdapter(Context context, List<Order> persone) {
+        DishAdapter(Context context, List<Order> persone) {
             super(context, 0, persone);
             inflater = LayoutInflater.from(context);
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        @NonNull
+        public View getView(int position, View convertView,@NonNull ViewGroup parent) {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.item_dish, parent, false);
             }
@@ -346,7 +348,7 @@ public class TableFragment extends Fragment {
         protected void innerOnUnsuccessfulPostExecute(BenderAsyncTaskResult<Empty> error) {
             final List<Order> errors = new ArrayList<>(1);
             errors.add(new Order(TableFragment.this.tableNumber, new Dish(error.getError().getMessage(), 0, 1), new Pair<>(0, 1)));
-            aggiorna(errors);
+            updateOrders(errors);
         }
     }
 
@@ -420,8 +422,8 @@ public class TableFragment extends Fragment {
         }
 
         private void commonOnPostExecute(final Pair<List<Order>, String> orders) {
-            aggiorna(orders.getX());
-            aggiornaNome(orders.getY() != null ? orders.getY() : "");
+            updateOrders(orders.getX());
+            updateName(orders.getY() != null ? orders.getY() : "");
         }
     }
 

@@ -6,8 +6,6 @@ package com.android.gscaparrotti.bendermobile.network;
 
 public class BenderNetworkException extends RuntimeException {
 
-    BenderNetworkException() {}
-
     BenderNetworkException(final String message) {
         super(message);
     }
