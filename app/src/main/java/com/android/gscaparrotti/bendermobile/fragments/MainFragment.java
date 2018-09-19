@@ -6,8 +6,8 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +19,12 @@ import android.widget.Toast;
 import com.android.gscaparrotti.bendermobile.R;
 import com.android.gscaparrotti.bendermobile.activities.MainActivity;
 import com.android.gscaparrotti.bendermobile.network.ServerInteractor;
+import com.android.gscaparrotti.bendermobile.utilities.BenderAsyncTaskResult;
+import com.android.gscaparrotti.bendermobile.utilities.BenderAsyncTaskResult.Empty;
+import com.android.gscaparrotti.bendermobile.utilities.FragmentNetworkingBenderAsyncTask;
 
-import java.io.IOException;
-import java.util.MissingFormatArgumentException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,8 +36,9 @@ import java.util.MissingFormatArgumentException;
  */
 public class MainFragment extends Fragment {
 
-    private GridView gv;
     private TableAdapter ta;
+    private int tablesCount = 0;
+    private Map<Integer, String> names = new HashMap<>();
 
     private OnMainFragmentInteractionListener mListener;
 
@@ -55,14 +59,14 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
-        gv = (GridView) view.findViewById(R.id.tablesContainer);
+        GridView gv = (GridView) view.findViewById(R.id.tablesContainer);
         ta = new TableAdapter(getActivity());
         gv.setAdapter(ta);
-        new TableAmountDownloader().execute();
+        new TableAmountDownloader(MainFragment.this).execute();
         view.findViewById(R.id.mainUpdate).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new TableAmountDownloader().execute();
+                new TableAmountDownloader(MainFragment.this).execute();
             }
         });
         view.findViewById(R.id.allPending).setOnClickListener(new View.OnClickListener() {
@@ -72,14 +76,6 @@ public class MainFragment extends Fragment {
             }
         });
         return view;
-    }
-
-    public void tableAdded(final int tableNumber) {
-        int current = ta.getCount();
-        for (int i = 0; i < tableNumber - current; i++) {
-            ta.addElement(i + 1);
-        }
-        ta.notifyDataSetChanged();
     }
 
     @Override
@@ -99,13 +95,31 @@ public class MainFragment extends Fragment {
         mListener = null;
     }
 
+
+    private void tableAdded(final int tableNumber, final Map<Integer, String> names) {
+        reset();
+        for (int i = 0; i < tableNumber; i++) {
+            addElement(i + 1, names.get(i + 1));
+        }
+        ta.notifyDataSetChanged();
+    }
+
+    private void addElement(final Integer i, final String name) {
+        tablesCount++;
+        names.put(i, name);
+    }
+
+    private void reset() {
+        tablesCount = 0;
+        names.clear();
+    }
+
     public interface OnMainFragmentInteractionListener {
         void onTablePressedEventFired(int tableNumber);
     }
 
     private class TableAdapter extends BaseAdapter {
 
-        private int n = 0;
         private LayoutInflater inflater;
 
         TableAdapter(Context context) {
@@ -114,11 +128,7 @@ public class MainFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return n;
-        }
-
-        public void addElement(final Integer i) {
-            n++;
+            return tablesCount;
         }
 
         @Override
@@ -138,7 +148,7 @@ public class MainFragment extends Fragment {
             }
             final Integer table = getItem(position);
             final TextView tableView = (TextView) convertView.findViewById(R.id.table);
-            tableView.setText(getString(R.string.itemTableText) + table);
+            tableView.setText(getString(R.string.itemTableText) + table + formattedName(names.get(table)));
             convertView.setLongClickable(true);
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -155,7 +165,8 @@ public class MainFragment extends Fragment {
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
-                                    new TableResetRequestUploader().execute(table);
+                                    new TableResetRequestUploader(MainFragment.this).execute(table);
+                                    new TableAmountDownloader(MainFragment.this).execute();
                                 }})
                             .setNegativeButton(android.R.string.no, null).show();
                     return true;
@@ -163,103 +174,68 @@ public class MainFragment extends Fragment {
             });
             return convertView;
         }
-    }
 
-    private class TableResetRequestUploader extends AsyncTask<Integer, Void, Boolean> {
-
-        private String errorMessage;
-        private String ip;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            if (isAdded()) {
-                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
-            } else {
-                this.cancel(true);
-            }
-        }
-
-        @Override
-        protected Boolean doInBackground(final Integer... params) {
-            final ServerInteractor serverInteractor = ServerInteractor.getInstance();
-            final String command = "RESET TABLE " + params[0];
-            boolean success = false;
-            if (!MainFragment.this.isVisible()) {
-                return success;
-            }
-            final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
-            if (input instanceof Exception) {
-                final Exception e = (Exception) input;
-                errorMessage = e.toString();
-            } else if (input instanceof String) {
-                final String stringInput = (String) input;
-                if (stringInput.equals("TABLE RESET CORRECTLY")) {
-                    success = true;
-                } else {
-                    errorMessage = stringInput;
-                }
-            }
-            return success;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            super.onPostExecute(success);
-            if (isAdded()) {
-                if (success) {
-                    Toast.makeText(MainActivity.toastContext, getString(R.string.ResetSuccess), Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.toastContext, errorMessage, Toast.LENGTH_LONG).show();
-                }
-            }
+        private String formattedName(final String name) {
+            return !(name == null) ? " - " + name : "";
         }
     }
 
-    private class TableAmountDownloader extends AsyncTask<Void, Void, Integer> {
+    private final class TableResetRequestUploader extends FragmentNetworkingBenderAsyncTask<Integer, Empty> {
 
-        private String ip;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            if (isAdded()) {
-                ip = getActivity().getSharedPreferences("BenderIP", 0).getString("BenderIP", "Absent");
-            } else {
-                this.cancel(true);
-            }
+        TableResetRequestUploader(Fragment fragment) {
+            super(fragment);
         }
 
         @Override
-        protected Integer doInBackground(final Void... params) {
-            final ServerInteractor serverInteractor = ServerInteractor.getInstance();
-            final String command = "GET AMOUNT";
-            Integer amount = 0;
-            final Object input = serverInteractor.sendCommandAndGetResult(ip, 6789, command);
-            if (input instanceof Exception) {
-                amount = -1;
-            } else if (input instanceof Integer){
-                amount = (Integer) input;
+        protected BenderAsyncTaskResult<Empty> innerDoInBackground(Integer[] objects) {
+            final String command = "RESET TABLE " + objects[0];
+            final Object input = new ServerInteractor().sendCommandAndGetResult(ip, 6789, command);
+            if (input instanceof String && input.equals("TABLE RESET CORRECTLY")) {
+                return new BenderAsyncTaskResult<>(BenderAsyncTaskResult.EMPTY_RESULT);
             }
-            return amount;
+            return new BenderAsyncTaskResult<>(new IllegalArgumentException(MainActivity.commonContext.getString(R.string.DatiNonValidi)));
         }
 
         @Override
-        protected void onPostExecute(final Integer integer) {
-            super.onPostExecute(integer);
-            if (isAdded()) {
-                if (integer < 0) {
-                    Toast.makeText(MainActivity.toastContext, getString(R.string.ServerError), Toast.LENGTH_LONG).show();
-                    if (isAdded() && MainFragment.this.isVisible()) {
-                        MainFragment.this.getView().setBackgroundColor(Color.rgb(204, 94, 61));
-                    }
-                } else {
-                    if (isAdded() && MainFragment.this.isVisible()) {
-                        MainFragment.this.getView().setBackgroundColor(Color.TRANSPARENT);
-                        MainFragment.this.tableAdded(integer);
-                    }
-                }
+        protected void innerOnSuccessfulPostExecute(BenderAsyncTaskResult<Empty> result) {
+            Toast.makeText(MainActivity.commonContext, getString(R.string.ResetSuccess), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        protected void innerOnUnsuccessfulPostExecute(BenderAsyncTaskResult<Empty> error) {
+            Toast.makeText(MainActivity.commonContext, error.getError().getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private final class TableAmountDownloader extends FragmentNetworkingBenderAsyncTask<Empty, Pair<Integer, Map<Integer, String>>> {
+
+        TableAmountDownloader(Fragment fragment) {
+            super(fragment);
+        }
+
+        @Override
+        protected BenderAsyncTaskResult<Pair<Integer, Map<Integer, String>>> innerDoInBackground(Empty[] objects) {
+            final Object receivedAmount = new ServerInteractor().sendCommandAndGetResult(ip, 6789, "GET AMOUNT");
+            final Object receivedNames = new ServerInteractor().sendCommandAndGetResult(ip, 6789, "GET NAMES");
+            if (receivedAmount instanceof Integer && receivedNames instanceof Map) {
+                final Integer amount = (Integer) receivedAmount;
+                @SuppressWarnings("unchecked")
+                final Map<Integer, String> names = (Map<Integer, String>) receivedNames;
+                return new BenderAsyncTaskResult<>(new Pair<>(amount, names));
             }
+            return new BenderAsyncTaskResult<>(new IllegalArgumentException(MainActivity.commonContext.getString(R.string.DatiNonValidi)));
+        }
+
+        @Override
+        protected void innerOnSuccessfulPostExecute(BenderAsyncTaskResult<Pair<Integer, Map<Integer, String>>> result) {
+            MainFragment.this.getView().setBackgroundColor(Color.TRANSPARENT);
+            MainFragment.this.tableAdded(result.getResult().first, result.getResult().second);
+        }
+
+        @Override
+        protected void innerOnUnsuccessfulPostExecute(BenderAsyncTaskResult<Pair<Integer, Map<Integer, String>>> error) {
+            MainFragment.this.getView().setBackgroundColor(Color.rgb(204, 94, 61));
+            Toast.makeText(MainActivity.commonContext, error.getError().getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -23,6 +23,7 @@
     <string name="ServerError">Impossibile comunicare col server</string>
     <string name="ResetSuccess">Tavolo ripristinato con successo</string>
     <string name="UpdateSuccess">Ordine aggiornato con successo</string>
+    <string name="NameUpdateSuccess">Nome impostato con successo</string>
     <string name="Remove">"Rimuovi (1)"</string>
     <string name="ViewAllPendingOrders">Da Servire</string>
     <string name="Aggiungi">Aggiungi</string>
@@ -30,4 +31,10 @@
     <string name="PrezzoPiatto">Prezzo Piatto</string>
     <string name="PrezzoTotale">"Conto Totale: "</string>
     <string name="valute">€</string>
+    <string name="NomeTavolo">Inserisci qui il nuovo nome del tavolo</string>
+    <string name="ErroreSocketConChiusura">Errore di comunicazione (la socket è stata chiusa)</string>
+    <string name="ErroreSocketSenzaChiusura">Errore di comunicazione (la socket NON è stata chiusa)</string>
+    <string name="DatiNonValidi">Ricevuti dati non validi</string>
+    <string name="DatiNonValidiIngresso">Forniti dati non validi</string>
+    <string name="GenericError">Errore Generico</string>
 </resources>
